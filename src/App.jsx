@@ -83,7 +83,13 @@ const useLocalState = (key, initial) => {
     try { const raw = localStorage.getItem(key); return raw ? JSON.parse(raw) : initial; }
     catch { return initial; }
   });
-  useEffect(() => { localStorage.setItem(key, JSON.stringify(state)); }, [key, state]);
+  useEffect(() => {
+    try {
+      localStorage.setItem(key, JSON.stringify(state));
+    } catch (e) {
+      console.error("Failed to save to localStorage", e);
+    }
+  }, [key, state]);
   return [state, setState];
 };
 
