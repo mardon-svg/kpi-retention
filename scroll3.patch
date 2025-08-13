@@ -1,0 +1,87 @@
+--- src/components/ui/Table.jsx
++++ src/components/ui/Table.jsx
+@@ -8,7 +8,7 @@
+   );
+   return (
+     <table className={`table ${className}`} {...props}>
+-      {hasBody ? children : (
++      {(hasBody || typeof empty === 'undefined') ? children : (
+         <tbody>
+           <tr>
+             <td colSpan="100%" className="py-4 text-center text-gray-500">
+
+--- src/components/DriversTable.jsx
++++ src/components/DriversTable.jsx
+@@ -34,14 +34,14 @@
+         </CardHeader>
+         <CardBody className="overflow-x-auto overflow-y-auto max-h-[70vh]" data-recruitment-panel>
+           <Table className="min-w-[1100px]">
+-            <Thead>
+-              <Tr>
+-                <Th>Driver</Th>
+-                <Th>Recruiter</Th>
+-                <Th>Source</Th>
+-                <Th>Hired (Start)</Th>
+-                <Th>Cost</Th>
+-                <Th>Time-to-Hire (d)</Th>
++            <Thead className="bg-slate-50">
++              <Tr className="text-left text-slate-500">
++                <Th className="py-2 px-2">Driver</Th>
++                <Th className="py-2 px-2">Recruiter</Th>
++                <Th className="py-2 px-2">Source</Th>
++                <Th className="py-2 px-2">Hired (Start)</Th>
++                <Th className="py-2 px-2">Cost</Th>
++                <Th className="py-2 px-2">Time-to-Hire (d)</Th>
+               </Tr>
+             </Thead>
+             <Tbody>
+
+--- src/components/Termination.jsx
++++ src/components/Termination.jsx
+@@ -17,14 +17,14 @@
+         </CardHeader>
+         <CardBody className="overflow-x-auto overflow-y-auto max-h-[70vh]">
+           <Table className="min-w-[900px]">
+-            <Thead>
+-              <Tr>
+-                <Th>Driver</Th>
+-                <Th>Recruiter</Th>
+-                <Th>Start</Th>
+-                <Th>Status</Th>
+-                <Th>Terminate Date</Th>
+-                <Th>Reason</Th>
++            <Thead className="bg-slate-50">
++              <Tr className="text-left text-slate-500">
++                <Th className="py-2 px-2">Driver</Th>
++                <Th className="py-2 px-2">Recruiter</Th>
++                <Th className="py-2 px-2">Start</Th>
++                <Th className="py-2 px-2">Status</Th>
++                <Th className="py-2 px-2">Terminate Date</Th>
++                <Th className="py-2 px-2">Reason</Th>
+               </Tr>
+             </Thead>
+             <Tbody>
+@@ -99,14 +99,14 @@
+         </CardHeader>
+         <CardBody className="overflow-x-auto overflow-y-auto max-h-[70vh]">
+           <Table className="min-w-[900px]">
+-            <Thead>
+-              <Tr>
+-                <Th>Driver</Th>
+-                <Th>Recruiter</Th>
+-                <Th>Start</Th>
+-                <Th>Term Date</Th>
+-                <Th>Reason</Th>
+-                <Th>Actions</Th>
++            <Thead className="bg-slate-50">
++              <Tr className="text-left text-slate-500">
++                <Th className="py-2 px-2">Driver</Th>
++                <Th className="py-2 px-2">Recruiter</Th>
++                <Th className="py-2 px-2">Start</Th>
++                <Th className="py-2 px-2">Term Date</Th>
++                <Th className="py-2 px-2">Reason</Th>
++                <Th className="py-2 px-2">Actions</Th>
+               </Tr>
+             </Thead>
+             <Tbody>
+
