@@ -1,8 +1,8 @@
 import React from 'react';
 
 function Termination({ drivers, up, can }) {
-  const active = drivers.filter(d => d.status !== 'Terminated');
-  const leavers = drivers.filter(d => d.status === 'Terminated');
+  const active = drivers.filter(d => d.status !== 'Terminated' || !d.termDate);
+  const leavers = drivers.filter(d => d.status === 'Terminated' && d.termDate);
 
   return (
     <section className="space-y-4">
