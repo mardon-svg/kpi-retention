@@ -537,9 +537,11 @@ export default function App() {
       return true;
     };
     return arr.filter(d => {
-      if (filters.recruiter && d.recruiter !== filters.recruiter) return false;
-      if (filters.source && d.source !== filters.source) return false;
-      if (!within(d.startDate)) return false;
+      // Allow editing newly-added drivers even if filters are active by
+      // only applying the filters when the driver has values for them.
+      if (filters.recruiter && d.recruiter && d.recruiter !== filters.recruiter) return false;
+      if (filters.source && d.source && d.source !== filters.source) return false;
+      if (d.startDate && !within(d.startDate)) return false;
       return true;
     });
   }, [drivers, filters]);
