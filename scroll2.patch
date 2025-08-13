@@ -1,0 +1,51 @@
+--- src/components/DriversTable.jsx
++++ src/components/DriversTable.jsx
+@@ -11,8 +11,15 @@
+     if (!recentDriverId) return;
+     const el = document.getElementById(`driver-${recentDriverId}`);
+     if (!el) return;
+-    el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+-    el.classList.add('ring-2', 'ring-accent/60', 'rounded-lg');
++    const panel = document.querySelector('[data-recruitment-panel]');
++    if (panel) {
++      const rowTop = el.offsetTop;
++      const rowCenter = rowTop - (panel.clientHeight / 2) + (el.clientHeight / 2);
++      panel.scrollTo({ top: Math.max(0, rowCenter), behavior: 'smooth' });
++    } else {
++      el.scrollIntoView({ behavior: 'smooth', block: 'center' });
++    }
++        el.classList.add('ring-2', 'ring-accent/60', 'rounded-lg');
+     const t = setTimeout(() => el.classList.remove('ring-2', 'ring-accent/60', 'rounded-lg'), 1500);
+     const firstInput = el.querySelector('input, select');
+     if (firstInput) firstInput.focus();
+@@ -25,7 +32,7 @@
+           <h2 className="text-xl font-semibold">Recruitment</h2>
+           <Button onClick={addDriver} variant="primary">+ Driver</Button>
+         </CardHeader>
+-        <CardBody className="overflow-x-auto overflow-y-auto max-h-[70vh]">
++        <CardBody className="overflow-x-auto overflow-y-auto max-h-[70vh]" data-recruitment-panel>
+           <Table className="min-w-[1100px]">
+             <Thead>
+               <Tr>
+
+--- src/components/Termination.jsx
++++ src/components/Termination.jsx
+@@ -15,7 +15,7 @@
+         <CardHeader>
+           <h2 className="text-xl font-semibold">Active</h2>
+         </CardHeader>
+-        <CardBody className="overflow-x-auto">
++        <CardBody className="overflow-x-auto overflow-y-auto max-h-[70vh]">
+           <Table className="min-w-[900px]">
+             <Thead>
+               <Tr>
+@@ -97,7 +97,7 @@
+         <CardHeader>
+           <h3 className="text-xl font-semibold">Leavers</h3>
+         </CardHeader>
+-        <CardBody className="overflow-x-auto">
++        <CardBody className="overflow-x-auto overflow-y-auto max-h-[70vh]">
+           <Table className="min-w-[900px]">
+             <Thead>
+               <Tr>
+
