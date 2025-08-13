@@ -13,9 +13,7 @@ function Settings({ drivers, setDrivers, sheetUrl, setSheetUrl, onSyncNow, autoS
     { key: 'name', label: 'Driver Name' }, { key: 'recruiter', label: 'Recruiter' }, { key: 'source', label: 'Source' },
     { key: 'startDate', label: 'Start Date (yyyy-mm-dd)' }, { key: 'week1Note', label: 'Week1 Note' },
     { key: 'week2Note', label: 'Week2 Note' }, { key: 'week3Note', label: 'Week3 Note' }, { key: 'week4Note', label: 'Week4 Note' },
-    { key: 'hiringCost', label: 'Hiring Cost' }, { key: 'timeToHireDays', label: 'Time to Hire (d)' },
-    { key: 'orientationDate', label: 'Orientation Date' }, { key: 'passedOrientation', label: 'Passed Orientation (Y/N)' },
-    { key: 'passed90Days', label: 'Passed 90d (Y/N)' }, { key: 'status', label: 'Status (Active/Terminated)' },
+    { key: 'hiringCost', label: 'Hiring Cost' }, { key: 'timeToHireDays', label: 'Time to Hire (d)' }, { key: 'status', label: 'Status (Active/Terminated)' },
     { key: 'termDate', label: 'Termination Date' }, { key: 'termReason', label: 'Termination Reason' }
   ];
 
