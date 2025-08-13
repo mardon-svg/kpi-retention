@@ -1,0 +1,61 @@
+--- src/App.jsx
++++ src/App.jsx
+@@ -610,7 +610,9 @@
+             addDriver={addDriver}
+             recruiters={RECRUITERS}
+             sources={SOURCES}
+-          />
++          
++          recentDriverId={recentDriverId}
++/>
+         </div>
+       )}
+       {tab === "Termination" && (
+
+--- src/components/DriversTable.jsx
++++ src/components/DriversTable.jsx
+@@ -1,19 +1,31 @@
+-import React from 'react';
++import React, { useEffect } from 'react';
+ import Button from './ui/Button';
+ import { Card, CardHeader, CardBody } from './ui/Card';
+ import { Table, Thead, Tbody, Tr, Th, Td } from './ui/Table';
+ import Input from './ui/Input';
+ import Select from './ui/Select';
+ 
+-function DriversTable({ drivers, up, addDriver, recruiters, sources }) {
+-  return (
++function DriversTable({ drivers, up, addDriver, recruiters, sources, recentDriverId }) {
++  
++  useEffect(() => {
++    if (!recentDriverId) return;
++    const el = document.getElementById(`driver-${recentDriverId}`);
++    if (!el) return;
++    el.scrollIntoView({ behavior: 'smooth', block: 'center' });
++    el.classList.add('ring-2', 'ring-accent/60', 'rounded-lg');
++    const t = setTimeout(() => el.classList.remove('ring-2', 'ring-accent/60', 'rounded-lg'), 1500);
++    const firstInput = el.querySelector('input, select');
++    if (firstInput) firstInput.focus();
++    return () => clearTimeout(t);
++  }, [recentDriverId]);
++return (
+     <div className="section space-y-6">
+       <Card>
+         <CardHeader>
+           <h2 className="text-xl font-semibold">Recruitment</h2>
+           <Button onClick={addDriver} variant="primary">+ Driver</Button>
+         </CardHeader>
+-        <CardBody className="overflow-x-auto">
++        <CardBody className="overflow-x-auto overflow-y-auto max-h-[70vh]">
+           <Table className="min-w-[1100px]">
+             <Thead>
+               <Tr>
+@@ -27,7 +39,7 @@
+             </Thead>
+             <Tbody>
+               {drivers.map((d) => (
+-                <Tr key={d.id}>
++                <Tr key={d.id} id={`driver-${d.id}`}>
+                   <Td><Input value={d.name} onChange={(e) => up(d.id, { name: e.target.value })} placeholder="Driver" className="w-40" /></Td>
+                   <Td><Select value={d.recruiter} onChange={(e) => up(d.id, { recruiter: e.target.value })} className="w-36"><option value="">—</option>{recruiters.map(r => <option key={r}>{r}</option>)}</Select></Td>
+                   <Td><Select value={d.source} onChange={(e) => up(d.id, { source: e.target.value })} className="w-36"><option value="">—</option>{sources.map(s => <option key={s}>{s}</option>)}</Select></Td>
