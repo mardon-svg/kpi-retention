@@ -4,8 +4,7 @@ import AppShell from "./components/AppShell";
 import DriversTable from "./components/DriversTable";
 import Termination from "./components/Termination";
 import Settings from "./components/Settings";
-import FiltersBar from "./components/FiltersBar";
-import { parseISO, addDaysLocal, todayLocalISO, firstOfMonth, lastOfMonth, ym, fmtPct } from "./lib/date";
+import { toLocalISO, parseISO, addDaysLocal, todayLocalISO, firstOfMonth, lastOfMonth, ym, fmtPct } from "./lib/date";
 import { LS_KEY, useLocalState } from "./lib/storage";
 import { uuid } from "./lib/uuid";
 
@@ -101,6 +100,71 @@ const Metric = ({ label, value }) => (
     <div className="text-base font-semibold">{value}</div>
   </div>
 );
+const Select = ({ value, onChange, options, placeholder }) => (
+  <select value={value} onChange={(e)=>onChange(e.target.value)} className="px-2 py-1 border rounded-lg">
+    <option value="">{placeholder||"—"}</option>
+    {options.map(o=> <option key={o} value={o}>{o}</option>)}
+  </select>
+);
+
+function FiltersBar({ filters, setFilters, savedViews, setSavedViews }) {
+  const update = (patch) => setFilters({ ...filters, ...patch });
+
+  const quickRange = (key) => {
+    const today = parseISO(todayLocalISO());
+    const startOfWeek = new Date(today); startOfWeek.setDate(today.getDate() - today.getDay());
+    const startOfMonth = firstOfMonth(ym(todayLocalISO()));
+    if (key === "week") update({ from: toLocalISO(startOfWeek), to: todayLocalISO() });
+    if (key === "month") update({ from: startOfMonth, to: todayLocalISO() });
+    if (key === "clear") update({ from: "", to: "" });
+  };
+
+  const saveView = () => {
+    const name = prompt("Name this view"); if (!name) return;
+    const copy = { ...(savedViews || {}) };
+    copy[name] = { ...filters, view: name };
+    setSavedViews(copy);
+    setFilters({ ...filters, view: name });
+  };
+  const loadView = (name) => {
+    if (!name) return;
+    const conf = savedViews?.[name];
+    if (conf) setFilters({ ...conf, view: name });
+  };
+
+  return (
+    <div className="bg-white rounded-2xl p-3 border shadow-sm flex flex-wrap items-center gap-2">
+      <div className="flex items-center gap-2">
+        <input type="date" value={filters.from || ""} onChange={(e) => update({ from: e.target.value })} className="px-2 py-1 border rounded-lg" />
+        <span>→</span>
+        <input type="date" value={filters.to || ""} onChange={(e) => update({ to: e.target.value })} className="px-2 py-1 border rounded-lg" />
+        <button onClick={() => quickRange("week")} className="btn px-2 py-1 rounded-lg border bg-white">This week</button>
+        <button onClick={() => quickRange("month")} className="btn px-2 py-1 rounded-lg border bg-white">This month</button>
+        <button onClick={() => quickRange("clear")} className="btn px-2 py-1 rounded-lg border bg-white">Clear</button>
+      </div>
+
+      <div className="flex items-center gap-2 ml-2">
+        <select value={filters.recruiter || ""} onChange={(e) => update({ recruiter: e.target.value })} className="px-2 py-1 border rounded-lg">
+          <option value="">All recruiters</option>
+          {RECRUITERS.map(r => <option key={r} value={r}>{r}</option>)}
+        </select>
+        <select value={filters.source || ""} onChange={(e) => update({ source: e.target.value })} className="px-2 py-1 border rounded-lg">
+          <option value="">All sources</option>
+          {SOURCES.map(s => <option key={s} value={s}>{s}</option>)}
+        </select>
+      </div>
+
+      <div className="ml-auto flex items-center gap-2">
+        <select value={filters.view || ""} onChange={(e) => loadView(e.target.value)} className="px-2 py-1 border rounded-lg">
+          <option value="">Load view…</option>
+          {Object.keys(savedViews||{}).map(n => <option key={n} value={n}>{n}</option>)}
+        </select>
+        <button onClick={saveView} className="btn px-3 py-2 rounded-xl border bg-white">Save view</button>
+      </div>
+    </div>
+  );
+}
+
 function SimpleLineChart({ points, height = 140 }) {
   const padding = 24;
   const w = Math.max(300, points.length * 40);
@@ -126,40 +190,8 @@ function SimpleLineChart({ points, height = 140 }) {
   );
 }
 
-function Dashboard({ drivers, range, setRange }) {
-  const months = useMemo(() => {
-    const s = new Set();
-    drivers.forEach(d => { if (d.startDate) s.add(ym(d.startDate)); if (d.termDate) s.add(ym(d.termDate)); });
-    return Array.from(s).filter(Boolean).sort();
-  }, [drivers]);
-
-  const monthly = useMemo(() => {
-    const headcountOn = (isoDate) =>
-      drivers.filter(d => {
-        if (!d.startDate) return false;
-        const sd = parseISO(d.startDate);
-        const date = parseISO(isoDate);
-        if (sd > date) return false;
-        if (d.status === 'Terminated' && d.termDate) return parseISO(d.termDate) > date;
-        return true;
-      }).length;
-
-    const leaversInMonth = (ymonth) =>
-      drivers.filter(d => d.status === 'Terminated' && d.termDate && ym(d.termDate) === ymonth).length;
-
-    return months.map(m => {
-      const start = firstOfMonth(m);
-      const end = lastOfMonth(m);
-      const hcStart = headcountOn(start);
-      const hcEnd = headcountOn(end);
-      const avgHC = (hcStart + hcEnd) / 2;
-      const leavers = leaversInMonth(m);
-      const retentionPct = avgHC ? 1 - leavers / avgHC : 0;
-      return { month: m, hcStart, hcEnd, avgHC, leavers, retentionPct };
-    });
-  }, [months, drivers]);
-
-  const rangeWindows = { '1m': 1, '3m': 3, '6m': 6, '12m': 12, 'all': Infinity };
+function Dashboard({ drivers, monthly, range, setRange }) {
+  const rangeWindows = { "1m": 1, "3m": 3, "6m": 6, "12m": 12, "all": Infinity };
   const windowSize = rangeWindows[range] ?? Infinity;
   const sliced = windowSize === Infinity ? monthly : monthly.slice(-windowSize);
 
@@ -313,14 +345,7 @@ function FollowUps({ drivers, can, up, addDriver, archive, unarchive, completion
 
   return (
     <section className="space-y-3">
-      <FiltersBar
-        filters={filters}
-        setFilters={setFilters}
-        savedViews={savedViews}
-        setSavedViews={setSavedViews}
-        recruiters={RECRUITERS}
-        sources={SOURCES}
-      />
+      <FiltersBar filters={filters} setFilters={setFilters} savedViews={savedViews} setSavedViews={setSavedViews} />
 
       <div className="bg-white rounded-2xl p-3 border shadow-sm flex flex-wrap items-center gap-2">
         <button onClick={addDriver} className="btn ml-auto px-3 py-2 rounded-xl bg-black text-white">+ Driver</button>
@@ -567,17 +592,7 @@ export default function App() {
   return (
     <AppShell current={tab} setCurrent={setTab}>
       {tab === "Dashboard" && (
-        <div className="space-y-3">
-          <FiltersBar
-            filters={filters}
-            setFilters={setFilters}
-            savedViews={savedViews}
-            setSavedViews={setSavedViews}
-            recruiters={RECRUITERS}
-            sources={SOURCES}
-          />
-          <Dashboard drivers={filteredDrivers} range={range} setRange={setRange} />
-        </div>
+        <Dashboard drivers={drivers} monthly={monthly} range={range} setRange={setRange} />
       )}
       {tab === "Follow-Ups" && (
         <FollowUps
@@ -595,37 +610,15 @@ export default function App() {
         />
       )}
       {tab === "Recruitment" && (
-        <div className="space-y-3">
-          <FiltersBar
-            filters={filters}
-            setFilters={setFilters}
-            savedViews={savedViews}
-            setSavedViews={setSavedViews}
-            recruiters={RECRUITERS}
-            sources={SOURCES}
-          />
-          <DriversTable
-            drivers={filteredDrivers}
-            up={up}
-            addDriver={addDriver}
-            recruiters={RECRUITERS}
-            sources={SOURCES}
-          />
-        </div>
+        <DriversTable
+          drivers={filteredDrivers}
+          up={up}
+          addDriver={addDriver}
+          recruiters={RECRUITERS}
+          sources={SOURCES}
+        />
       )}
-      {tab === "Termination" && (
-        <div className="space-y-3">
-          <FiltersBar
-            filters={filters}
-            setFilters={setFilters}
-            savedViews={savedViews}
-            setSavedViews={setSavedViews}
-            recruiters={RECRUITERS}
-            sources={SOURCES}
-          />
-          <Termination drivers={filteredDrivers} up={up} can={can} />
-        </div>
-      )}
+      {tab === "Termination" && <Termination drivers={filteredDrivers} up={up} can={can} />}
       {tab === "KPI" && <KPI monthly={monthly} />}
       {tab === "Settings" && (
         <Settings
