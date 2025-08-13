@@ -7,6 +7,7 @@ import Settings from "./components/Settings";
 import FiltersBar from "./components/FiltersBar";
 import { parseISO, addDaysLocal, todayLocalISO, firstOfMonth, lastOfMonth, ym, fmtPct } from "./lib/date";
 import { LS_KEY, useLocalState } from "./lib/storage";
+import { uuid } from "./lib/uuid";
 
 // ---------- CSV helpers ----------
 const escapeCSV = (s) => {
@@ -64,7 +65,7 @@ const fromCSVFile = async (file) => parseCSVText(await file.text());
 
 // ---------- Master data model ----------
 const newDriver = () => ({
-  id: crypto.randomUUID(),
+  id: uuid(),
   name: "",
   recruiter: "",
   source: "",
