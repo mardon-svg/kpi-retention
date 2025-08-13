@@ -137,7 +137,7 @@ const Select = ({ value, onChange, options, placeholder }) => (
 
 // ---------- App shell ----------
 function AppShell({ children, current, setCurrent }) {
-  const tabs = ["Dashboard","Follow-Ups","Recruitment","Termination","KPI","Settings"];
+  const tabs = ["Dashboard","Recruitment","Follow-Ups","Termination","KPI","Settings"];
   return (
     <div className="min-h-screen bg-slate-50 text-slate-900 p-6">
       <div className="max-w-7xl mx-auto space-y-6">
