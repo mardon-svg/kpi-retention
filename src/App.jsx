@@ -1,4 +1,4 @@
-import React, { useMemo, useState, useEffect } from "react";
+import React, { useMemo, useState, useEffect, useCallback } from "react";
 import "./index.css";
 
 // ---------- Utility helpers (local date safe) ----------
@@ -231,7 +231,7 @@ function SimpleLineChart({ points, height = 140 }) {
   );
 }
 
-function Dashboard({ drivers, months, monthly, range, setRange }) {
+function Dashboard({ drivers, monthly, range, setRange }) {
   const rangeWindows = { "1m": 1, "3m": 3, "6m": 6, "12m": 12, "all": Infinity };
   const windowSize = rangeWindows[range] ?? Infinity;
   const sliced = windowSize === Infinity ? monthly : monthly.slice(-windowSize);
@@ -267,9 +267,15 @@ function Dashboard({ drivers, months, monthly, range, setRange }) {
       <div className="flex flex-wrap items-center justify-between gap-2">
         <h2 className="font-semibold text-lg">Dashboard</h2>
         <div className="flex items-center gap-2">
-          {["1m","3m","6m","12m","all"].map(k=>(
-            <button key={k} onClick={()=>setRange(k)} className={`px-2 py-1 rounded-lg border ${range===k?"bg-black text-white":"bg-white"}`}>{k==="all"?"All":k}</button>
-          ))}
+      {["1m","3m","6m","12m","all"].map(k => (
+        <button
+          key={k}
+          onClick={() => setRange(k)}
+          className={`px-2 py-1 rounded-lg border ${range === k ? "bg-black text-white" : "bg-white"}`}
+        >
+          {k === "all" ? "All" : k}
+        </button>
+      ))}
         </div>
       </div>
 
@@ -484,7 +490,7 @@ function FollowUps({ drivers, can, up, addDriver, archive, unarchive, completion
   );
 }
 
-function Recruitment({ drivers, up, addDriver, can }) {
+function Recruitment({ drivers, up, addDriver }) {
   return (
     <section className="space-y-3">
       <div className="flex items-center justify-between">
@@ -641,7 +647,12 @@ function Settings({ drivers, setDrivers, sheetUrl, setSheetUrl, onSyncNow, autoS
   };
 
   const exportCSV = () => {
-    const csv = toCSV(drivers.map(({ id, ...rest }) => rest));
+    const csv = toCSV(
+      drivers.map(({ id, ...rest }) => {
+        void id;
+        return rest;
+      })
+    );
     if (!csv) { alert("No data to export"); return; }
     const blob = new Blob(["\uFEFF" + csv], { type: "text/csv;charset=utf-8;" });
     const url = URL.createObjectURL(blob);
@@ -768,54 +779,71 @@ export default function App() {
     return Array.from(s).filter(Boolean).sort();
   }, [drivers]);
 
-  const headcountOn = (isoDate) => drivers.filter(d => {
-    if (!d.startDate) return false;
-    const sd = parseISO(d.startDate); const date = parseISO(isoDate);
-    if (sd > date) return false;
-    if (d.status === "Terminated" && d.termDate) return parseISO(d.termDate) > date;
-    return true;
-  }).length;
+  const monthly = useMemo(() => {
+    const headcountOn = (isoDate) =>
+      drivers.filter(d => {
+        if (!d.startDate) return false;
+        const sd = parseISO(d.startDate);
+        const date = parseISO(isoDate);
+        if (sd > date) return false;
+        if (d.status === "Terminated" && d.termDate) return parseISO(d.termDate) > date;
+        return true;
+      }).length;
 
-  const leaversInMonth = (ymonth) => drivers.filter(d => d.status === "Terminated" && d.termDate && ym(d.termDate) === ymonth).length;
+    const leaversInMonth = (ymonth) =>
+      drivers.filter(d => d.status === "Terminated" && d.termDate && ym(d.termDate) === ymonth).length;
 
-  const monthly = useMemo(() => months.map(m => {
-    const start = firstOfMonth(m); const end = lastOfMonth(m);
-    const hcStart = headcountOn(start); const hcEnd = headcountOn(end);
-    const avgHC = (hcStart + hcEnd) / 2;
-    const leavers = leaversInMonth(m);
-    const retentionPct = avgHC ? (1 - (leavers / avgHC)) : 0;
-    return { month: m, hcStart, hcEnd, avgHC, leavers, retentionPct };
-  }), [months, drivers]);
+    return months.map(m => {
+      const start = firstOfMonth(m);
+      const end = lastOfMonth(m);
+      const hcStart = headcountOn(start);
+      const hcEnd = headcountOn(end);
+      const avgHC = (hcStart + hcEnd) / 2;
+      const leavers = leaversInMonth(m);
+      const retentionPct = avgHC ? 1 - leavers / avgHC : 0;
+      return { month: m, hcStart, hcEnd, avgHC, leavers, retentionPct };
+    });
+  }, [months, drivers]);
 
-  const applySheetRows = (rows) => {
+  const applySheetRows = useCallback((rows) => {
     const mapped = rows.map((r) => {
       const d = newDriver();
-      Object.keys(d).forEach(k => { if (r[k] !== undefined) d[k] = r[k]; });
+      Object.keys(d).forEach(k => {
+        if (r[k] !== undefined) d[k] = r[k];
+      });
       return d;
     });
     setDrivers(mapped);
-  };
+  }, [setDrivers]);
 
-  const syncNow = async () => {
+  const syncNow = useCallback(async () => {
     try {
-      if (!sheetUrl.trim()) { alert("Add your Google Sheet CSV URL in Settings."); return; }
+      if (!sheetUrl.trim()) {
+        alert("Add your Google Sheet CSV URL in Settings.");
+        return;
+      }
       const res = await fetch(sheetUrl.trim(), { cache: "no-store" });
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
       const text = await res.text();
       const rows = parseCSVText(text);
-      if (!rows.length) { alert("The sheet is empty or headers are missing."); return; }
+      if (!rows.length) {
+        alert("The sheet is empty or headers are missing.");
+        return;
+      }
       applySheetRows(rows);
       alert("Sync complete.");
     } catch (e) {
       alert("Sync failed. Check the URL and sharing settings.\n\n" + e.message);
     }
-  };
+  }, [sheetUrl, applySheetRows]);
 
   useEffect(() => {
     if (!autoSyncEnabled || !sheetUrl) return;
-    const id = setInterval(() => { syncNow(); }, 60 * 60 * 1000);
+    const id = setInterval(() => {
+      syncNow();
+    }, 60 * 60 * 1000);
     return () => clearInterval(id);
-  }, [autoSyncEnabled, sheetUrl]);
+  }, [autoSyncEnabled, sheetUrl, syncNow]);
 
   const filteredDrivers = useMemo(() => {
     const arr = drivers.filter(d => !d.archived);
@@ -837,7 +865,9 @@ export default function App() {
 
   return (
     <AppShell current={tab} setCurrent={setTab}>
-      {tab === "Dashboard" && <Dashboard drivers={drivers} months={months} monthly={monthly} range={range} setRange={setRange} />}
+      {tab === "Dashboard" && (
+        <Dashboard drivers={drivers} monthly={monthly} range={range} setRange={setRange} />
+      )}
       {tab === "Follow-Ups" && (
         <FollowUps
           drivers={filteredDrivers}
@@ -853,7 +883,9 @@ export default function App() {
           setSavedViews={setSavedViews}
         />
       )}
-      {tab === "Recruitment" && <Recruitment drivers={filteredDrivers} up={up} addDriver={addDriver} can={can} />}
+      {tab === "Recruitment" && (
+        <Recruitment drivers={filteredDrivers} up={up} addDriver={addDriver} />
+      )}
       {tab === "Termination" && <Termination drivers={filteredDrivers} up={up} can={can} />}
       {tab === "KPI" && <KPI monthly={monthly} />}
       {tab === "Settings" && (
