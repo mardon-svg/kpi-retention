@@ -1,6 +1,10 @@
 import React, { useState } from 'react';
 import { todayLocalISO } from '../lib/date';
 import { LS_KEY } from '../lib/storage';
+import { Card, CardHeader, CardBody } from './ui/Card';
+import Button from './ui/Button';
+import Input from './ui/Input';
+import Select from './ui/Select';
 
 function Settings({ drivers, setDrivers, sheetUrl, setSheetUrl, onSyncNow, autoSyncEnabled, setAutoSyncEnabled, newDriver, fromCSVFile, toCSV }) {
   const [preview, setPreview] = useState(null);
@@ -52,10 +56,7 @@ function Settings({ drivers, setDrivers, sheetUrl, setSheetUrl, onSyncNow, autoS
 
   const exportCSV = () => {
     const csv = toCSV(
-      drivers.map(({ id, ...rest }) => {
-        void id;
-        return rest;
-      })
+      drivers.map(({ id, ...rest }) => { void id; return rest; })
     );
     if (!csv) { alert('No data to export'); return; }
     const blob = new Blob(['\uFEFF' + csv], { type: 'text/csv;charset=utf-8;' });
@@ -72,49 +73,57 @@ function Settings({ drivers, setDrivers, sheetUrl, setSheetUrl, onSyncNow, autoS
   };
 
   return (
-    <section className="space-y-4">
-      <div className="bg-white rounded-2xl p-4 border shadow-sm space-y-3">
-        <h2 className="font-semibold">Google Sheet Sync</h2>
-        <div className="flex flex-wrap items-end gap-2">
-          <input value={sheetUrl} onChange={(e) => setSheetUrl(e.target.value)} placeholder="https://docs.google.com/spreadsheets/d/.../export?format=csv&gid=0" className="px-3 py-2 rounded-xl border w-[520px]" />
-          <button onClick={onSyncNow} className="btn px-3 py-2 rounded-xl border bg-white">Sync now</button>
-          <label className="text-sm flex items-center gap-2 ml-2">
-            <input type="checkbox" checked={autoSyncEnabled} onChange={(e) => setAutoSyncEnabled(e.target.checked)} />
-            Auto-sync every 1 hour
-          </label>
-        </div>
-        <div className="text-xs text-slate-500">Use a published CSV URL. Headers should match the app’s field names.</div>
-      </div>
+    <div className="section space-y-6">
+      <Card>
+        <CardHeader>
+          <h2 className="text-xl font-semibold">Google Sheet Sync</h2>
+        </CardHeader>
+        <CardBody className="space-y-3">
+          <div className="flex flex-wrap items-end gap-2">
+            <Input value={sheetUrl} onChange={(e) => setSheetUrl(e.target.value)} placeholder="https://docs.google.com/spreadsheets/d/.../export?format=csv&gid=0" className="w-[520px]" />
+            <Button onClick={onSyncNow} variant="ghost">Sync now</Button>
+            <label className="text-sm flex items-center gap-2 ml-2">
+              <input type="checkbox" className="rounded" checked={autoSyncEnabled} onChange={(e) => setAutoSyncEnabled(e.target.checked)} />
+              Auto-sync every 1 hour
+            </label>
+          </div>
+          <div className="text-xs text-gray-500">Use a published CSV URL. Headers should match the app’s field names.</div>
+        </CardBody>
+      </Card>
 
-      <div className="bg-white rounded-2xl p-4 border shadow-sm space-y-3">
-        <h2 className="font-semibold">Import / Export</h2>
-        <div className="flex flex-wrap items-end gap-2">
-          <label className="btn px-3 py-2 rounded-xl bg-white border cursor-pointer">Import CSV<input type="file" accept=".csv" className="hidden" onChange={onFile} /></label>
-          <button onClick={applyImport} disabled={!preview} className={`btn px-3 py-2 rounded-xl border ${preview ? 'bg-black text-white' : 'bg-white text-slate-400'}`}>Apply Mapping</button>
-          <div className="ml-auto flex items-center gap-2">
-            <button onClick={exportCSV} className="btn px-3 py-2 rounded-xl bg-white border">Export CSV</button>
-            <button onClick={wipe} className="btn px-3 py-2 rounded-xl bg-red-600 text-white">Clear ALL data</button>
-          </div>
-        </div>
-        {preview && (
-          <div className="bg-slate-50 border rounded-2xl p-3">
-            <div className="font-semibold mb-2">Map columns</div>
-            <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-3">
-              {FIELDS.map(f => (
-                <div key={f.key} className="flex items-center gap-2">
-                  <div className="w-48 text-sm">{f.label}</div>
-                  <select value={map[f.key] || ''} onChange={(e) => setMap({ ...map, [f.key]: e.target.value })} className="px-2 py-1 border rounded-lg flex-1">
-                    <option value="">—</option>
-                    {preview.headers.map(h => <option key={h} value={h}>{h}</option>)}
-                  </select>
-                </div>
-              ))}
+      <Card>
+        <CardHeader>
+          <h2 className="text-xl font-semibold">Import / Export</h2>
+        </CardHeader>
+        <CardBody className="space-y-3">
+          <div className="flex flex-wrap items-end gap-2">
+            <label className="btn btn-ghost cursor-pointer">Import CSV<input type="file" accept=".csv" className="hidden" onChange={onFile} /></label>
+            <Button onClick={applyImport} variant={preview ? 'primary' : 'ghost'} disabled={!preview}>Apply Mapping</Button>
+            <div className="ml-auto flex items-center gap-2">
+              <Button onClick={exportCSV} variant="ghost">Export CSV</Button>
+              <Button onClick={wipe} variant="danger">Clear ALL data</Button>
             </div>
-            <div className="text-xs text-slate-500 mt-2">CSV supports multi-line quoted fields. Unmapped fields will use defaults.</div>
           </div>
-        )}
-      </div>
-    </section>
+          {preview && (
+            <div className="bg-gray-50 border rounded-2xl p-3">
+              <div className="font-semibold mb-2">Map columns</div>
+              <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-3">
+                {FIELDS.map(f => (
+                  <div key={f.key} className="flex items-center gap-2">
+                    <div className="w-48 text-sm">{f.label}</div>
+                    <Select value={map[f.key] || ''} onChange={(e) => setMap({ ...map, [f.key]: e.target.value })} className="flex-1">
+                      <option value="">—</option>
+                      {preview.headers.map(h => <option key={h} value={h}>{h}</option>)}
+                    </Select>
+                  </div>
+                ))}
+              </div>
+              <div className="text-xs text-gray-500 mt-2">CSV supports multi-line quoted fields. Unmapped fields will use defaults.</div>
+            </div>
+          )}
+        </CardBody>
+      </Card>
+    </div>
   );
 }
 
