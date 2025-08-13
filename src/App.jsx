@@ -573,7 +573,7 @@ function Termination({ drivers, up, can }) {
                             d.id,
                             status === "Active"
                               ? { status, termDate: "", termReason: "" }
-                              : { status }
+                              : { status, termDate: d.termDate || todayLocalISO() }
                           );
                         }}
                         className="px-2 py-1 border rounded-lg w-32"
@@ -589,7 +589,8 @@ function Termination({ drivers, up, can }) {
                         value={d.termDate}
                         onChange={(e) => {
                           if (!can.setTermination) return;
-                          up(d.id, { termDate: e.target.value });
+                          const value = e.target.value;
+                          up(d.id, { termDate: value || todayLocalISO() });
                         }}
                         className={`px-2 py-1 border rounded-lg w-40 ${needsDate ? "border-red-500" : ""}`}
                         disabled={!can.setTermination || d.status !== "Terminated"}
@@ -637,7 +638,18 @@ function Termination({ drivers, up, can }) {
                   <td className="py-2 px-2">{d.recruiter || "—"}</td>
                   <td className="py-2 px-2">{d.startDate || "—"}</td>
                   <td className="py-2 px-2">{d.termDate || "—"}</td>
-                  <td className="py-2 px-2">{d.termReason || "—"}</td>
+                  <td className="py-2 px-2">
+                    <input
+                      value={d.termReason}
+                      onChange={(e) => {
+                        if (!can.setTermination) return;
+                        up(d.id, { termReason: e.target.value });
+                      }}
+                      placeholder="Reason"
+                      className="px-2 py-1 border rounded-lg w-60"
+                      disabled={!can.setTermination}
+                    />
+                  </td>
                   <td className="py-2 px-2">
                     <button
                       onClick={() => {
