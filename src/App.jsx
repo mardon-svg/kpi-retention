@@ -722,10 +722,24 @@ function Settings({ drivers, setDrivers, sheetUrl, setSheetUrl, onSyncNow, autoS
     if (!preview) return;
     const mapped = preview.rows.map((r) => {
       const d = newDriver();
-      Object.entries(map).forEach(([field, header]) => { d[field] = r[header] ?? d[field]; });
+      Object.entries(map).forEach(([field, header]) => {
+        const value = r[header];
+        if (field === "id") {
+          if (value) d.id = value; // only overwrite id if provided
+        } else {
+          d[field] = value ?? d[field];
+        }
+      });
       return d;
     });
-    setDrivers(mapped);
+    setDrivers((prev) => {
+      const byId = Object.fromEntries(prev.map((d) => [d.id, d]));
+      mapped.forEach((d) => {
+        if (d.id && byId[d.id]) byId[d.id] = { ...byId[d.id], ...d };
+        else byId[d.id] = d;
+      });
+      return Object.values(byId);
+    });
     setPreview(null); setMap({});
   };
 
@@ -891,12 +905,19 @@ export default function App() {
   const applySheetRows = useCallback((rows) => {
     const mapped = rows.map((r) => {
       const d = newDriver();
-      Object.keys(d).forEach(k => {
-        if (r[k] !== undefined) d[k] = r[k];
+      Object.keys(d).forEach((k) => {
+        if (r[k] !== undefined && (k !== "id" || r[k])) d[k] = r[k];
       });
       return d;
     });
-    setDrivers(mapped);
+    setDrivers((prev) => {
+      const byId = Object.fromEntries(prev.map((d) => [d.id, d]));
+      mapped.forEach((d) => {
+        if (d.id && byId[d.id]) byId[d.id] = { ...byId[d.id], ...d };
+        else byId[d.id] = d;
+      });
+      return Object.values(byId);
+    });
   }, [setDrivers]);
 
   const syncNow = useCallback(async () => {
