@@ -1,13 +1,21 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { Card, CardHeader, CardBody } from './ui/Card';
 import { Table, Thead, Tbody, Tr, Th, Td } from './ui/Table';
 import Input from './ui/Input';
 import Select from './ui/Select';
 import Button from './ui/Button';
 
-function Termination({ drivers, up, can }) {
+function Termination({ drivers, up, can, recentDriverId }) {
   const active = drivers.filter(d => d.status !== 'Terminated' || !d.termDate);
   const leavers = drivers.filter(d => d.status === 'Terminated' && d.termDate);
+
+  useEffect(() => {
+    if (!recentDriverId) return;
+    const el = document.getElementById(`driver-row-${recentDriverId}`);
+    if (el && 'scrollIntoView' in el) {
+      el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }
+  }, [recentDriverId, drivers.length]);
 
   return (
     <div className="section space-y-6">
@@ -28,10 +36,10 @@ function Termination({ drivers, up, can }) {
               </Tr>
             </Thead>
             <Tbody>
-              {active.map(d => {
-                const needsDate = (d.status === 'Terminated' && !d.termDate);
-                return (
-                  <Tr key={d.id}>
+                {active.map(d => {
+                  const needsDate = (d.status === 'Terminated' && !d.termDate);
+                  return (
+                    <Tr key={d.id} id={`driver-row-${d.id}`}>
                     <Td>{d.name || '—'}</Td>
                     <Td>{d.recruiter || '—'}</Td>
                     <Td>{d.startDate || '—'}</Td>
@@ -110,8 +118,8 @@ function Termination({ drivers, up, can }) {
               </Tr>
             </Thead>
             <Tbody>
-              {leavers.map(d => (
-                <Tr key={d.id}>
+                {leavers.map(d => (
+                  <Tr key={d.id} id={`driver-row-${d.id}`}>
                   <Td>{d.name}</Td>
                   <Td>{d.recruiter || '—'}</Td>
                   <Td>{d.startDate || '—'}</Td>
