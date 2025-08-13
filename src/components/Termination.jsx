@@ -1,35 +1,42 @@
 import React from 'react';
+import { Card, CardHeader, CardBody } from './ui/Card';
+import { Table, Thead, Tbody, Tr, Th, Td } from './ui/Table';
+import Input from './ui/Input';
+import Select from './ui/Select';
+import Button from './ui/Button';
 
 function Termination({ drivers, up, can }) {
   const active = drivers.filter(d => d.status !== 'Terminated' || !d.termDate);
   const leavers = drivers.filter(d => d.status === 'Terminated' && d.termDate);
 
   return (
-    <section className="space-y-4">
-      <div className="bg-white rounded-2xl p-4 border shadow-sm">
-        <div className="flex items-center justify-between"><h2 className="font-semibold">Active</h2></div>
-        <div className="overflow-x-auto mt-2">
-          <table className="min-w-[900px] text-sm">
-            <thead className="bg-slate-50">
-              <tr className="text-left text-slate-500">
-                <th className="py-2 px-2">Driver</th>
-                <th className="py-2 px-2">Recruiter</th>
-                <th className="py-2 px-2">Start</th>
-                <th className="py-2 px-2">Status</th>
-                <th className="py-2 px-2">Terminate Date</th>
-                <th className="py-2 px-2">Reason</th>
-              </tr>
-            </thead>
-            <tbody>
+    <div className="section space-y-6">
+      <Card>
+        <CardHeader>
+          <h2 className="text-xl font-semibold">Active</h2>
+        </CardHeader>
+        <CardBody className="overflow-x-auto">
+          <Table className="min-w-[900px]">
+            <Thead>
+              <Tr>
+                <Th>Driver</Th>
+                <Th>Recruiter</Th>
+                <Th>Start</Th>
+                <Th>Status</Th>
+                <Th>Terminate Date</Th>
+                <Th>Reason</Th>
+              </Tr>
+            </Thead>
+            <Tbody>
               {active.map(d => {
                 const needsDate = (d.status === 'Terminated' && !d.termDate);
                 return (
-                  <tr key={d.id} className="border-t">
-                    <td className="py-2 px-2">{d.name || '—'}</td>
-                    <td className="py-2 px-2">{d.recruiter || '—'}</td>
-                    <td className="py-2 px-2">{d.startDate || '—'}</td>
-                    <td className="py-2 px-2">
-                      <select
+                  <Tr key={d.id}>
+                    <Td>{d.name || '—'}</Td>
+                    <Td>{d.recruiter || '—'}</Td>
+                    <Td>{d.startDate || '—'}</Td>
+                    <Td>
+                      <Select
                         value={d.status}
                         onChange={(e) => {
                           if (!can.setTermination) return;
@@ -41,15 +48,15 @@ function Termination({ drivers, up, can }) {
                               : { status }
                           );
                         }}
-                        className="px-2 py-1 border rounded-lg w-32"
+                        className="w-32"
                         disabled={!can.setTermination}
                       >
                         <option>Active</option>
                         <option>Terminated</option>
-                      </select>
-                    </td>
-                    <td className="py-2 px-2">
-                      <input
+                      </Select>
+                    </Td>
+                    <Td>
+                      <Input
                         type="date"
                         value={d.termDate}
                         onChange={(e) => {
@@ -57,90 +64,94 @@ function Termination({ drivers, up, can }) {
                           const value = e.target.value;
                           up(d.id, { termDate: value });
                         }}
-                        className={`px-2 py-1 border rounded-lg w-40 ${needsDate ? 'border-red-500' : ''}`}
+                        className={`w-40 ${needsDate ? 'border-danger' : ''}`}
                         disabled={!can.setTermination || d.status !== 'Terminated'}
                       />
-                    </td>
-                    <td className="py-2 px-2">
-                      <input
+                    </Td>
+                    <Td>
+                      <Input
                         value={d.termReason}
                         onChange={(e) => {
                           if (!can.setTermination) return;
                           up(d.id, { termReason: e.target.value });
                         }}
                         placeholder="Reason"
-                        className="px-2 py-1 border rounded-lg w-60"
+                        className="w-60"
                         disabled={!can.setTermination || d.status !== 'Terminated'}
                       />
-                    </td>
-                  </tr>
+                    </Td>
+                  </Tr>
                 );
               })}
-              {!active.length && (<tr><td colSpan={6} className="py-4 text-slate-400">No active drivers.</td></tr>)}
-            </tbody>
-          </table>
-        </div>
-      </div>
+              {!active.length && (
+                <Tr>
+                  <Td colSpan={6} className="py-4 text-gray-400">No active drivers.</Td>
+                </Tr>
+              )}
+            </Tbody>
+          </Table>
+        </CardBody>
+      </Card>
 
-      <div className="bg-white rounded-2xl p-4 border shadow-sm">
-        <h3 className="font-semibold mb-2">Leavers</h3>
-        <div className="overflow-x-auto">
-          <table className="min-w-[900px] text-sm">
-            <thead className="bg-slate-50">
-              <tr className="text-left text-slate-500">
-                <th className="py-2 px-2">Driver</th>
-                <th className="py-2 px-2">Recruiter</th>
-                <th className="py-2 px-2">Start</th>
-                <th className="py-2 px-2">Term Date</th>
-                <th className="py-2 px-2">Reason</th>
-                <th className="py-2 px-2">Actions</th>
-              </tr>
-            </thead>
-            <tbody>
+      <Card>
+        <CardHeader>
+          <h3 className="text-xl font-semibold">Leavers</h3>
+        </CardHeader>
+        <CardBody className="overflow-x-auto">
+          <Table className="min-w-[900px]">
+            <Thead>
+              <Tr>
+                <Th>Driver</Th>
+                <Th>Recruiter</Th>
+                <Th>Start</Th>
+                <Th>Term Date</Th>
+                <Th>Reason</Th>
+                <Th>Actions</Th>
+              </Tr>
+            </Thead>
+            <Tbody>
               {leavers.map(d => (
-                <tr key={d.id} className="border-t">
-                  <td className="py-2 px-2">{d.name}</td>
-                  <td className="py-2 px-2">{d.recruiter || '—'}</td>
-                  <td className="py-2 px-2">{d.startDate || '—'}</td>
-                  <td className="py-2 px-2">{d.termDate || '—'}</td>
-                  <td className="py-2 px-2">
-                    <input
+                <Tr key={d.id}>
+                  <Td>{d.name}</Td>
+                  <Td>{d.recruiter || '—'}</Td>
+                  <Td>{d.startDate || '—'}</Td>
+                  <Td>{d.termDate || '—'}</Td>
+                  <Td>
+                    <Input
                       value={d.termReason}
                       onChange={(e) => {
                         if (!can.setTermination) return;
                         up(d.id, { termReason: e.target.value });
                       }}
                       placeholder="Reason"
-                      className="px-2 py-1 border rounded-lg w-60"
+                      className="w-60"
                       disabled={!can.setTermination}
                     />
-                  </td>
-                  <td className="py-2 px-2">
-                    <button
+                  </Td>
+                  <Td>
+                    <Button
                       onClick={() => {
                         if (!can.setTermination) return;
                         up(d.id, { status: 'Active', termDate: '', termReason: '' });
                       }}
-                      className="btn px-2 py-1 border rounded-lg bg-white"
+                      variant="ghost"
                       disabled={!can.setTermination}
                     >
                       Reactivate
-                    </button>
-                  </td>
-                </tr>
+                    </Button>
+                  </Td>
+                </Tr>
               ))}
               {!leavers.length && (
-                <tr>
-                  <td colSpan={6} className="py-4 text-slate-400">
-                    No leavers yet.
-                  </td>
-                </tr>
+                <Tr>
+                  <Td colSpan={6} className="py-4 text-gray-400">No leavers yet.</Td>
+                </Tr>
               )}
-            </tbody>
-          </table>
-        </div>
-      </div>
-    </section>
+            </Tbody>
+          </Table>
+        </CardBody>
+      </Card>
+    </div>
   );
 }
 
