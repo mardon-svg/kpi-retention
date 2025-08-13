@@ -590,6 +590,8 @@ function Termination({ drivers, up, can }) {
                         onChange={(e) => {
                           if (!can.setTermination) return;
                           const value = e.target.value;
+                          // Require users to manually choose a termination date
+                          // without auto-filling today's date.
                           up(d.id, { termDate: value });
                         }}
                         className={`px-2 py-1 border rounded-lg w-40 ${needsDate ? "border-red-500" : ""}`}
