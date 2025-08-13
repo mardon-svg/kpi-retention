@@ -4,6 +4,10 @@
 
 @layer components {
   .btn {
-    @apply transition-all duration-150 ease-in-out hover:scale-[1.03] active:scale-[0.97] hover:shadow-sm active:shadow-inner focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:shadow-none disabled:hover:scale-100 hover:brightness-95 disabled:hover:brightness-100;
+    @apply inline-flex items-center justify-center rounded-lg px-4 py-2
+           transition-all duration-150 ease-out
+           shadow-sm hover:shadow active:shadow-none
+           hover:brightness-95 active:scale-[0.98]
+           disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:brightness-100;
   }
 }
