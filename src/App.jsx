@@ -279,26 +279,6 @@ function Dashboard({ drivers, monthly, range, setRange }) {
         </div>
       </div>
 
-      <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-3">
-        <Metric label="Active drivers" value={active} />
-        <Metric label="New hires (MTD)" value={newHiresMTD} />
-        <Metric label="Leavers (MTD)" value={leaversMTD} />
-        <Metric label="Retention (MTD)" value={retentionMTD} />
-      </div>
-
-      <div className="bg-white rounded-2xl p-4 border shadow-sm">
-        <div className="font-semibold mb-2">Headcount Start (range)</div>
-        <SimpleLineChart points={headStart} />
-      </div>
-      <div className="bg-white rounded-2xl p-4 border shadow-sm">
-        <div className="font-semibold mb-2">Headcount End (range)</div>
-        <SimpleLineChart points={headEnd} />
-      </div>
-      <div className="bg-white rounded-2xl p-4 border shadow-sm">
-        <div className="font-semibold mb-2">Retention % (range)</div>
-        <SimpleLineChart points={retention} />
-      </div>
-
       <div className="bg-white rounded-2xl p-4 shadow-sm border">
         <h2 className="font-semibold mb-2">Recruiter Leaderboard</h2>
         <div className="overflow-x-auto">
@@ -324,6 +304,26 @@ function Dashboard({ drivers, monthly, range, setRange }) {
             </tbody>
           </table>
         </div>
+      </div>
+
+      <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-3">
+        <Metric label="Active drivers" value={active} />
+        <Metric label="New hires (MTD)" value={newHiresMTD} />
+        <Metric label="Leavers (MTD)" value={leaversMTD} />
+        <Metric label="Retention (MTD)" value={retentionMTD} />
+      </div>
+
+      <div className="bg-white rounded-2xl p-4 border shadow-sm">
+        <div className="font-semibold mb-2">Headcount Start (range)</div>
+        <SimpleLineChart points={headStart} />
+      </div>
+      <div className="bg-white rounded-2xl p-4 border shadow-sm">
+        <div className="font-semibold mb-2">Headcount End (range)</div>
+        <SimpleLineChart points={headEnd} />
+      </div>
+      <div className="bg-white rounded-2xl p-4 border shadow-sm">
+        <div className="font-semibold mb-2">Retention % (range)</div>
+        <SimpleLineChart points={retention} />
       </div>
     </section>
   );
