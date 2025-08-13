@@ -22,3 +22,8 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+
+# local notes
+codex.patch
+DIAGNOSIS.md
+
