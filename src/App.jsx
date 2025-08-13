@@ -169,9 +169,16 @@ function FiltersBar({ filters, setFilters, savedViews, setSavedViews }) {
 
   const saveView = () => {
     const name = prompt("Name this view"); if (!name) return;
-    const copy = { ...(savedViews || {}) }; copy[name] = filters; setSavedViews(copy);
+    const copy = { ...(savedViews || {}) };
+    copy[name] = { ...filters, view: name };
+    setSavedViews(copy);
+    setFilters({ ...filters, view: name });
   };
-  const loadView = (name) => { if (!name) return; const conf = savedViews?.[name]; if (conf) setFilters(conf); };
+  const loadView = (name) => {
+    if (!name) return;
+    const conf = savedViews?.[name];
+    if (conf) setFilters({ ...conf, view: name });
+  };
 
   return (
     <div className="bg-white rounded-2xl p-3 border shadow-sm flex flex-wrap items-center gap-2">
