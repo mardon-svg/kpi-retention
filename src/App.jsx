@@ -8,7 +8,9 @@ const parseISO = (iso) => {
   if (!iso) return null;
   const [y,m,dd] = iso.split("-").map(Number);
   if (!y || !m || !dd) return null;
-  return new Date(y, m-1, dd);
+  const d = new Date(y, m - 1, dd);
+  if (d.getFullYear() !== y || d.getMonth() !== m - 1 || d.getDate() !== dd) return null;
+  return d;
 };
 const addDaysLocal = (iso, n) => {
   const d = parseISO(iso);
