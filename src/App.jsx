@@ -432,6 +432,7 @@ export default function App() {
   const [range, setRange] = useLocalState(LS_KEY + ":range", "3m");
   const [sheetUrl, setSheetUrl] = useLocalState(LS_KEY + ":sheetUrl", "");
   const [autoSyncEnabled, setAutoSyncEnabled] = useLocalState(LS_KEY + ":autoSync", true);
+  const [recentDriverId, setRecentDriverId] = useState("");
 
   const can = {
     archive: true,
@@ -441,9 +442,25 @@ export default function App() {
   };
 
   const up = (id, patch) => setDrivers(arr => arr.map(d => d.id === id ? { ...d, ...patch } : d));
-  const addDriver = () => setDrivers(arr => [{ ...newDriver() }, ...arr]);
+  const addDriver = () => {
+    const d = { ...newDriver() };
+    setDrivers(arr => [d, ...arr]);
+    setRecentDriverId(d.id);
+  };
   const archive = (ids) => setDrivers(arr => arr.map(d => ids.includes(d.id) ? { ...d, archived: true, archivedAt: todayLocalISO() } : d));
   const unarchive = (ids) => setDrivers(arr => arr.map(d => ids.includes(d.id) ? { ...d, archived: false } : d));
+
+  useEffect(() => {
+    if (!recentDriverId) return;
+    const d = drivers.find(dr => dr.id === recentDriverId);
+    if (d && d.name && d.recruiter && d.source && d.startDate) {
+      setRecentDriverId("");
+    }
+  }, [drivers, recentDriverId]);
+
+  useEffect(() => {
+    setRecentDriverId("");
+  }, [tab]);
 
   const completion = (d) => (["week1Note","week2Note","week3Note","week4Note"].filter(k => (d[k]||"").trim()!=="").length)/4;
 
@@ -537,6 +554,7 @@ export default function App() {
       return true;
     };
     return arr.filter(d => {
+      if (d.id === recentDriverId) return true;
       // Allow editing newly-added drivers even if filters are active by
       // only applying the filters when the driver has values for them.
       if (filters.recruiter && d.recruiter && d.recruiter !== filters.recruiter) return false;
@@ -544,7 +562,7 @@ export default function App() {
       if (d.startDate && !within(d.startDate)) return false;
       return true;
     });
-  }, [drivers, filters]);
+  }, [drivers, filters, recentDriverId]);
 
   return (
     <AppShell current={tab} setCurrent={setTab}>

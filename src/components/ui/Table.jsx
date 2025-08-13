@@ -1,8 +1,10 @@
 import React from 'react';
 
+export const Tbody = (props) => <tbody {...props} />;
+
 export function Table({ className = '', children, empty, ...props }) {
   const hasBody = React.Children.toArray(children).some(
-    (child) => child?.type === 'tbody'
+    (child) => child?.type === 'tbody' || child?.type === Tbody
   );
   return (
     <table className={`table ${className}`} {...props}>
@@ -20,7 +22,6 @@ export function Table({ className = '', children, empty, ...props }) {
 }
 
 export const Thead = (props) => <thead {...props} />;
-export const Tbody = (props) => <tbody {...props} />;
 export const Tr = (props) => <tr {...props} />;
 export const Th = ({ className = '', scope = 'col', ...props }) => <th scope={scope} className={className} {...props} />;
 export const Td = ({ className = '', ...props }) => <td className={className} {...props} />;
