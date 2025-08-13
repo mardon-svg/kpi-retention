@@ -9,6 +9,7 @@ function Button({ variant = 'primary', className = '', loading = false, disabled
   };
   return (
     <button
+      type="button"
       className={`btn ${variants[variant] || ''} ${className}`}
       disabled={disabled || loading}
       {...props}
