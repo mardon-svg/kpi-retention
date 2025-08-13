@@ -23,9 +23,6 @@ function DriversTable({ drivers, up, addDriver, recruiters, sources }) {
                 <Th>Hired (Start)</Th>
                 <Th>Cost</Th>
                 <Th>Time-to-Hire (d)</Th>
-                <Th>Orientation</Th>
-                <Th>Passed Orient</Th>
-                <Th>Passed 90d</Th>
               </Tr>
             </Thead>
             <Tbody>
@@ -37,14 +34,11 @@ function DriversTable({ drivers, up, addDriver, recruiters, sources }) {
                   <Td><Input type="date" value={d.startDate} onChange={(e) => up(d.id, { startDate: e.target.value })} className="w-40" /></Td>
                   <Td><Input type="number" value={d.hiringCost} onChange={(e) => up(d.id, { hiringCost: e.target.value })} placeholder="USD" className="w-28" /></Td>
                   <Td><Input type="number" value={d.timeToHireDays} onChange={(e) => up(d.id, { timeToHireDays: e.target.value })} placeholder="days" className="w-28" /></Td>
-                  <Td><Input type="date" value={d.orientationDate} onChange={(e) => up(d.id, { orientationDate: e.target.value })} className="w-40" /></Td>
-                  <Td><Select value={d.passedOrientation} onChange={(e) => up(d.id, { passedOrientation: e.target.value })} className="w-28"><option value="">—</option><option>Y</option><option>N</option></Select></Td>
-                  <Td><Select value={d.passed90Days} onChange={(e) => up(d.id, { passed90Days: e.target.value })} className="w-28"><option value="">—</option><option>Y</option><option>N</option></Select></Td>
                 </Tr>
               ))}
               {!drivers.length && (
                 <Tr>
-                  <Td colSpan={9} className="py-6 text-center text-gray-400">Add drivers to track recruitment KPIs.</Td>
+                  <Td colSpan={6} className="py-6 text-center text-gray-400">Add drivers to track recruitment KPIs.</Td>
                 </Tr>
               )}
             </Tbody>
