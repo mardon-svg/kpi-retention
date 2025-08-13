@@ -564,14 +564,49 @@ function Termination({ drivers, up, can }) {
                     <td className="py-2 px-2">{d.recruiter || "—"}</td>
                     <td className="py-2 px-2">{d.startDate || "—"}</td>
                     <td className="py-2 px-2">
-                      <select value={d.status} onChange={(e) => { if (!can.setTermination) return; up(d.id, { status: e.target.value }); }} className="px-2 py-1 border rounded-lg w-32" disabled={!can.setTermination}>
-                        <option>Active</option><option>Terminated</option>
+                      <select
+                        value={d.status}
+                        onChange={(e) => {
+                          if (!can.setTermination) return;
+                          const status = e.target.value;
+                          up(
+                            d.id,
+                            status === "Active"
+                              ? { status, termDate: "", termReason: "" }
+                              : { status }
+                          );
+                        }}
+                        className="px-2 py-1 border rounded-lg w-32"
+                        disabled={!can.setTermination}
+                      >
+                        <option>Active</option>
+                        <option>Terminated</option>
                       </select>
                     </td>
                     <td className="py-2 px-2">
-                      <input type="date" value={d.termDate} onChange={(e) => { if (!can.setTermination) return; up(d.id, { termDate: e.target.value }); }} className={`px-2 py-1 border rounded-lg w-40 ${needsDate ? "border-red-500" : ""}`} disabled={!can.setTermination} />
+                      <input
+                        type="date"
+                        value={d.termDate}
+                        onChange={(e) => {
+                          if (!can.setTermination) return;
+                          up(d.id, { termDate: e.target.value });
+                        }}
+                        className={`px-2 py-1 border rounded-lg w-40 ${needsDate ? "border-red-500" : ""}`}
+                        disabled={!can.setTermination || d.status !== "Terminated"}
+                      />
                     </td>
-                    <td className="py-2 px-2"><input value={d.termReason} onChange={(e) => { if (!can.setTermination) return; up(d.id, { termReason: e.target.value }); }} placeholder="Reason" className="px-2 py-1 border rounded-lg w-60" disabled={!can.setTermination} /></td>
+                    <td className="py-2 px-2">
+                      <input
+                        value={d.termReason}
+                        onChange={(e) => {
+                          if (!can.setTermination) return;
+                          up(d.id, { termReason: e.target.value });
+                        }}
+                        placeholder="Reason"
+                        className="px-2 py-1 border rounded-lg w-60"
+                        disabled={!can.setTermination || d.status !== "Terminated"}
+                      />
+                    </td>
                   </tr>
                 );
               })}
@@ -592,6 +627,7 @@ function Termination({ drivers, up, can }) {
                 <th className="py-2 px-2">Start</th>
                 <th className="py-2 px-2">Term Date</th>
                 <th className="py-2 px-2">Reason</th>
+                <th className="py-2 px-2">Actions</th>
               </tr>
             </thead>
             <tbody>
@@ -602,9 +638,27 @@ function Termination({ drivers, up, can }) {
                   <td className="py-2 px-2">{d.startDate || "—"}</td>
                   <td className="py-2 px-2">{d.termDate || "—"}</td>
                   <td className="py-2 px-2">{d.termReason || "—"}</td>
+                  <td className="py-2 px-2">
+                    <button
+                      onClick={() => {
+                        if (!can.setTermination) return;
+                        up(d.id, { status: "Active", termDate: "", termReason: "" });
+                      }}
+                      className="px-2 py-1 border rounded-lg bg-white"
+                      disabled={!can.setTermination}
+                    >
+                      Reactivate
+                    </button>
+                  </td>
                 </tr>
               ))}
-              {!leavers.length && (<tr><td colSpan={5} className="py-4 text-slate-400">No leavers yet.</td></tr>)}
+              {!leavers.length && (
+                <tr>
+                  <td colSpan={6} className="py-4 text-slate-400">
+                    No leavers yet.
+                  </td>
+                </tr>
+              )}
             </tbody>
           </table>
         </div>
