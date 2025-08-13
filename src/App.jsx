@@ -1,28 +1,11 @@
 import React, { useMemo, useState, useEffect, useCallback } from "react";
 import "./index.css";
-
-// ---------- Utility helpers (local date safe) ----------
-const pad = (n) => String(n).padStart(2, "0");
-const toLocalISO = (d) => `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}`;
-const parseISO = (iso) => {
-  if (!iso) return null;
-  const [y,m,dd] = iso.split("-").map(Number);
-  if (!y || !m || !dd) return null;
-  const d = new Date(y, m - 1, dd);
-  if (d.getFullYear() !== y || d.getMonth() !== m - 1 || d.getDate() !== dd) return null;
-  return d;
-};
-const addDaysLocal = (iso, n) => {
-  const d = parseISO(iso);
-  if (!d) return "";
-  d.setDate(d.getDate() + n);
-  return toLocalISO(d);
-};
-const todayLocalISO = () => toLocalISO(new Date());
-const firstOfMonth = (ym) => { const [y,m]=ym.split('-').map(Number); return toLocalISO(new Date(y, m-1, 1)); };
-const lastOfMonth = (ym) => { const [y,m]=ym.split('-').map(Number); return toLocalISO(new Date(y, m, 0)); };
-const ym = (iso) => (iso ? iso.slice(0,7) : "");
-const fmtPct = (n) => `${Math.round((n||0)*100)}%`;
+import AppShell from "./components/AppShell";
+import DriversTable from "./components/DriversTable";
+import Termination from "./components/Termination";
+import Settings from "./components/Settings";
+import { toLocalISO, parseISO, addDaysLocal, todayLocalISO, firstOfMonth, lastOfMonth, ym, fmtPct } from "./lib/date";
+import { LS_KEY, useLocalState } from "./lib/storage";
 
 // ---------- CSV helpers ----------
 const escapeCSV = (s) => {
@@ -78,23 +61,6 @@ const parseCSVText = (text) => {
 };
 const fromCSVFile = async (file) => parseCSVText(await file.text());
 
-// ---------- Local storage ----------
-const LS_KEY = "kpi_retention_v3";
-const useLocalState = (key, initial) => {
-  const [state, setState] = useState(() => {
-    try { const raw = localStorage.getItem(key); return raw ? JSON.parse(raw) : initial; }
-    catch { return initial; }
-  });
-  useEffect(() => {
-    try {
-      localStorage.setItem(key, JSON.stringify(state));
-    } catch (e) {
-      console.error("Failed to save to localStorage", e);
-    }
-  }, [key, state]);
-  return [state, setState];
-};
-
 // ---------- Master data model ----------
 const newDriver = () => ({
   id: crypto.randomUUID(),
@@ -143,26 +109,6 @@ const Select = ({ value, onChange, options, placeholder }) => (
   </select>
 );
 
-// ---------- App shell ----------
-function AppShell({ children, current, setCurrent }) {
-  const tabs = ["Dashboard","Recruitment","Follow-Ups","Termination","KPI","Settings"];
-  return (
-    <div className="min-h-screen bg-slate-50 text-slate-900 p-6">
-      <div className="max-w-7xl mx-auto space-y-6">
-        <header className="flex flex-wrap items-center justify-between gap-3">
-          <h1 className="text-2xl font-bold">KPI & Driver Retention</h1>
-          <div className="text-slate-500">Local mode • All data saved in your browser</div>
-        </header>
-        <nav className="flex flex-wrap gap-2">
-          {tabs.map((t) => (
-            <button key={t} onClick={() => setCurrent(t)} className={`btn px-3 py-2 rounded-2xl border ${current === t ? "bg-black text-white" : "bg-white"}`}>{t}</button>
-          ))}
-        </nav>
-        {children}
-      </div>
-    </div>
-  );
-}
 function FiltersBar({ filters, setFilters, savedViews, setSavedViews }) {
   const update = (patch) => setFilters({ ...filters, ...patch });
 
@@ -505,348 +451,6 @@ function FollowUps({ drivers, can, up, addDriver, archive, unarchive, completion
   );
 }
 
-function Recruitment({ drivers, up, addDriver }) {
-  return (
-    <section className="space-y-3">
-      <div className="flex items-center justify-between">
-        <h2 className="font-semibold">Recruitment</h2>
-        <button onClick={addDriver} className="btn px-3 py-2 rounded-xl bg-black text-white">+ Driver</button>
-      </div>
-
-      <div className="bg-white rounded-2xl p-0 border shadow-sm overflow-x-auto">
-        <table className="min-w-[1100px] text-sm">
-          <thead className="bg-slate-50">
-            <tr className="text-left text-slate-500">
-              <th className="py-2 px-2">Driver</th>
-              <th className="py-2 px-2">Recruiter</th>
-              <th className="py-2 px-2">Source</th>
-              <th className="py-2 px-2">Hired (Start)</th>
-              <th className="py-2 px-2">Cost</th>
-              <th className="py-2 px-2">Time-to-Hire (d)</th>
-              <th className="py-2 px-2">Orientation</th>
-              <th className="py-2 px-2">Passed Orient</th>
-              <th className="py-2 px-2">Passed 90d</th>
-            </tr>
-          </thead>
-          <tbody>
-            {drivers.map((d) => (
-              <tr key={d.id} className="border-t">
-                <td className="py-2 px-2"><input value={d.name} onChange={(e) => up(d.id, { name: e.target.value })} placeholder="Driver" className="px-2 py-1 border rounded-lg w-40" /></td>
-                <td className="py-2 px-2"><select value={d.recruiter} onChange={(e) => up(d.id, { recruiter: e.target.value })} className="px-2 py-1 border rounded-lg w-36"><option value="">—</option>{RECRUITERS.map(r => <option key={r}>{r}</option>)}</select></td>
-                <td className="py-2 px-2"><select value={d.source} onChange={(e) => up(d.id, { source: e.target.value })} className="px-2 py-1 border rounded-lg w-36"><option value="">—</option>{SOURCES.map(s => <option key={s}>{s}</option>)}</select></td>
-                <td className="py-2 px-2"><input type="date" value={d.startDate} onChange={(e) => up(d.id, { startDate: e.target.value })} className="px-2 py-1 border rounded-lg w-40" /></td>
-                <td className="py-2 px-2"><input type="number" value={d.hiringCost} onChange={(e) => up(d.id, { hiringCost: e.target.value })} placeholder="USD" className="px-2 py-1 border rounded-lg w-28" /></td>
-                <td className="py-2 px-2"><input type="number" value={d.timeToHireDays} onChange={(e) => up(d.id, { timeToHireDays: e.target.value })} placeholder="days" className="px-2 py-1 border rounded-lg w-28" /></td>
-                <td className="py-2 px-2"><input type="date" value={d.orientationDate} onChange={(e) => up(d.id, { orientationDate: e.target.value })} className="px-2 py-1 border rounded-lg w-40" /></td>
-                <td className="py-2 px-2"><select value={d.passedOrientation} onChange={(e) => up(d.id, { passedOrientation: e.target.value })} className="px-2 py-1 border rounded-lg w-28"><option value="">—</option><option>Y</option><option>N</option></select></td>
-                <td className="py-2 px-2"><select value={d.passed90Days} onChange={(e) => up(d.id, { passed90Days: e.target.value })} className="px-2 py-1 border rounded-lg w-28"><option value="">—</option><option>Y</option><option>N</option></select></td>
-              </tr>
-            ))}
-            {!drivers.length && (<tr><td colSpan={9} className="py-6 text-center text-slate-400">Add drivers to track recruitment KPIs.</td></tr>)}
-          </tbody>
-        </table>
-      </div>
-    </section>
-  );
-}
-
-function Termination({ drivers, up, can }) {
-  const active = drivers.filter(d => d.status !== "Terminated");
-  const leavers = drivers.filter(d => d.status === "Terminated");
-
-  return (
-    <section className="space-y-4">
-      <div className="bg-white rounded-2xl p-4 border shadow-sm">
-        <div className="flex items-center justify-between"><h2 className="font-semibold">Active</h2></div>
-        <div className="overflow-x-auto mt-2">
-          <table className="min-w-[900px] text-sm">
-            <thead className="bg-slate-50">
-              <tr className="text-left text-slate-500">
-                <th className="py-2 px-2">Driver</th>
-                <th className="py-2 px-2">Recruiter</th>
-                <th className="py-2 px-2">Start</th>
-                <th className="py-2 px-2">Status</th>
-                <th className="py-2 px-2">Terminate Date</th>
-                <th className="py-2 px-2">Reason</th>
-              </tr>
-            </thead>
-            <tbody>
-              {active.map(d => {
-                const needsDate = (d.status === "Terminated" && !d.termDate);
-                return (
-                  <tr key={d.id} className="border-t">
-                    <td className="py-2 px-2">{d.name || "—"}</td>
-                    <td className="py-2 px-2">{d.recruiter || "—"}</td>
-                    <td className="py-2 px-2">{d.startDate || "—"}</td>
-                    <td className="py-2 px-2">
-                      <select
-                        value={d.status}
-                        onChange={(e) => {
-                          if (!can.setTermination) return;
-                          const status = e.target.value;
-                          up(
-                            d.id,
-                            status === "Active"
-                              ? { status, termDate: "", termReason: "" }
-                              : { status }
-                          );
-                        }}
-                        className="px-2 py-1 border rounded-lg w-32"
-                        disabled={!can.setTermination}
-                      >
-                        <option>Active</option>
-                        <option>Terminated</option>
-                      </select>
-                    </td>
-                    <td className="py-2 px-2">
-                      <input
-                        type="date"
-                        value={d.termDate}
-                        onChange={(e) => {
-                          if (!can.setTermination) return;
-                          const value = e.target.value;
-                          // Require users to manually choose a termination date
-                          // without auto-filling today's date.
-                          up(d.id, { termDate: value });
-                        }}
-                        className={`px-2 py-1 border rounded-lg w-40 ${needsDate ? "border-red-500" : ""}`}
-                        disabled={!can.setTermination || d.status !== "Terminated"}
-                      />
-                    </td>
-                    <td className="py-2 px-2">
-                      <input
-                        value={d.termReason}
-                        onChange={(e) => {
-                          if (!can.setTermination) return;
-                          up(d.id, { termReason: e.target.value });
-                        }}
-                        placeholder="Reason"
-                        className="px-2 py-1 border rounded-lg w-60"
-                        disabled={!can.setTermination || d.status !== "Terminated"}
-                      />
-                    </td>
-                  </tr>
-                );
-              })}
-              {!active.length && (<tr><td colSpan={6} className="py-4 text-slate-400">No active drivers.</td></tr>)}
-            </tbody>
-          </table>
-        </div>
-      </div>
-
-      <div className="bg-white rounded-2xl p-4 border shadow-sm">
-        <h3 className="font-semibold mb-2">Leavers</h3>
-        <div className="overflow-x-auto">
-          <table className="min-w-[900px] text-sm">
-            <thead className="bg-slate-50">
-              <tr className="text-left text-slate-500">
-                <th className="py-2 px-2">Driver</th>
-                <th className="py-2 px-2">Recruiter</th>
-                <th className="py-2 px-2">Start</th>
-                <th className="py-2 px-2">Term Date</th>
-                <th className="py-2 px-2">Reason</th>
-                <th className="py-2 px-2">Actions</th>
-              </tr>
-            </thead>
-            <tbody>
-              {leavers.map(d => (
-                <tr key={d.id} className="border-t">
-                  <td className="py-2 px-2">{d.name}</td>
-                  <td className="py-2 px-2">{d.recruiter || "—"}</td>
-                  <td className="py-2 px-2">{d.startDate || "—"}</td>
-                  <td className="py-2 px-2">{d.termDate || "—"}</td>
-                  <td className="py-2 px-2">
-                    <input
-                      value={d.termReason}
-                      onChange={(e) => {
-                        if (!can.setTermination) return;
-                        up(d.id, { termReason: e.target.value });
-                      }}
-                      placeholder="Reason"
-                      className="px-2 py-1 border rounded-lg w-60"
-                      disabled={!can.setTermination}
-                    />
-                  </td>
-                  <td className="py-2 px-2">
-                    <button
-                      onClick={() => {
-                        if (!can.setTermination) return;
-                        up(d.id, { status: "Active", termDate: "", termReason: "" });
-                      }}
-                      className="btn px-2 py-1 border rounded-lg bg-white"
-                      disabled={!can.setTermination}
-                    >
-                      Reactivate
-                    </button>
-                  </td>
-                </tr>
-              ))}
-              {!leavers.length && (
-                <tr>
-                  <td colSpan={6} className="py-4 text-slate-400">
-                    No leavers yet.
-                  </td>
-                </tr>
-              )}
-            </tbody>
-          </table>
-        </div>
-      </div>
-    </section>
-  );
-}
-function Settings({ drivers, setDrivers, sheetUrl, setSheetUrl, onSyncNow, autoSyncEnabled, setAutoSyncEnabled }) {
-  const [preview, setPreview] = useState(null);
-  const [map, setMap] = useState({});
-  const FIELDS = [
-    { key: "name", label: "Driver Name" }, { key: "recruiter", label: "Recruiter" }, { key: "source", label: "Source" },
-    { key: "startDate", label: "Start Date (yyyy-mm-dd)" }, { key: "week1Note", label: "Week1 Note" },
-    { key: "week2Note", label: "Week2 Note" }, { key: "week3Note", label: "Week3 Note" }, { key: "week4Note", label: "Week4 Note" },
-    { key: "hiringCost", label: "Hiring Cost" }, { key: "timeToHireDays", label: "Time to Hire (d)" },
-    { key: "orientationDate", label: "Orientation Date" }, { key: "passedOrientation", label: "Passed Orientation (Y/N)" },
-    { key: "passed90Days", label: "Passed 90d (Y/N)" }, { key: "status", label: "Status (Active/Terminated)" },
-    { key: "termDate", label: "Termination Date" }, { key: "termReason", label: "Termination Reason" }
-  ];
-
-  const onFile = async (e) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-    const rows = await fromCSVFile(file);
-    if (!rows.length) { setPreview(null); return; }
-    setPreview({ headers: Object.keys(rows[0]), rows });
-    const mm = {}; FIELDS.forEach(f => { if (rows[0][f.key] !== undefined) mm[f.key] = f.key; });
-    setMap(mm); e.target.value = "";
-  };
-
-  const applyImport = () => {
-    if (!preview) return;
-    const mapped = preview.rows.map((r) => {
-      const d = newDriver();
-      Object.entries(map).forEach(([field, header]) => {
-        const value = r[header];
-        if (field === "id") {
-          if (value) d.id = value; // only overwrite id if provided
-        } else {
-          d[field] = value ?? d[field];
-        }
-      });
-      return d;
-    });
-    setDrivers((prev) => {
-      const byId = Object.fromEntries(prev.map((d) => [d.id, d]));
-      mapped.forEach((d) => {
-        if (d.id && byId[d.id]) byId[d.id] = { ...byId[d.id], ...d };
-        else byId[d.id] = d;
-      });
-      return Object.values(byId);
-    });
-    setPreview(null); setMap({});
-  };
-
-  const exportCSV = () => {
-    const csv = toCSV(
-      drivers.map(({ id, ...rest }) => {
-        void id;
-        return rest;
-      })
-    );
-    if (!csv) { alert("No data to export"); return; }
-    const blob = new Blob(["\uFEFF" + csv], { type: "text/csv;charset=utf-8;" });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement("a"); a.href = url; a.download = `drivers_${todayLocalISO()}.csv`;
-    document.body.appendChild(a); a.click(); document.body.removeChild(a);
-    setTimeout(() => URL.revokeObjectURL(url), 0);
-  };
-
-  const wipe = () => {
-    if (!confirm("This will clear ALL driver data. Continue?")) return;
-    setDrivers([]);
-    localStorage.removeItem(LS_KEY + ":drivers");
-  };
-
-  return (
-    <section className="space-y-4">
-      <div className="bg-white rounded-2xl p-4 border shadow-sm space-y-3">
-        <h2 className="font-semibold">Google Sheet Sync</h2>
-        <div className="flex flex-wrap items-end gap-2">
-          <input value={sheetUrl} onChange={(e) => setSheetUrl(e.target.value)} placeholder="https://docs.google.com/spreadsheets/d/.../export?format=csv&gid=0" className="px-3 py-2 rounded-xl border w-[520px]" />
-          <button onClick={onSyncNow} className="btn px-3 py-2 rounded-xl border bg-white">Sync now</button>
-          <label className="text-sm flex items-center gap-2 ml-2">
-            <input type="checkbox" checked={autoSyncEnabled} onChange={(e) => setAutoSyncEnabled(e.target.checked)} />
-            Auto-sync every 1 hour
-          </label>
-        </div>
-        <div className="text-xs text-slate-500">Use a published CSV URL. Headers should match the app’s field names.</div>
-      </div>
-
-      <div className="bg-white rounded-2xl p-4 border shadow-sm space-y-3">
-        <h2 className="font-semibold">Import / Export</h2>
-        <div className="flex flex-wrap items-end gap-2">
-          <label className="btn px-3 py-2 rounded-xl bg-white border cursor-pointer">Import CSV<input type="file" accept=".csv" className="hidden" onChange={onFile} /></label>
-          <button onClick={applyImport} disabled={!preview} className={`btn px-3 py-2 rounded-xl border ${preview ? "bg-black text-white" : "bg-white text-slate-400"}`}>Apply Mapping</button>
-          <div className="ml-auto flex items-center gap-2">
-            <button onClick={exportCSV} className="btn px-3 py-2 rounded-xl bg-white border">Export CSV</button>
-            <button onClick={wipe} className="btn px-3 py-2 rounded-xl bg-red-600 text-white">Clear ALL data</button>
-          </div>
-        </div>
-        {preview && (
-          <div className="bg-slate-50 border rounded-2xl p-3">
-            <div className="font-semibold mb-2">Map columns</div>
-            <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-3">
-              {FIELDS.map(f => (
-                <div key={f.key} className="flex items-center gap-2">
-                  <div className="w-48 text-sm">{f.label}</div>
-                  <select value={map[f.key] || ""} onChange={(e) => setMap({ ...map, [f.key]: e.target.value })} className="px-2 py-1 border rounded-lg flex-1">
-                    <option value="">—</option>
-                    {preview.headers.map(h => <option key={h} value={h}>{h}</option>)}
-                  </select>
-                </div>
-              ))}
-            </div>
-            <div className="text-xs text-slate-500 mt-2">CSV supports multi-line quoted fields. Unmapped fields will use defaults.</div>
-          </div>
-        )}
-      </div>
-
-      <TestsPanel />
-    </section>
-  );
-}
-
-function TestsPanel(){
-  const [results, setResults] = useState([]);
-  const run = () => {
-    const res = [];
-    const assert = (name, cond) => res.push({ name, pass: !!cond });
-
-    const csv1 = "a,b\n1,2\n3,4\n";
-    const r1 = parseCSVText(csv1); assert("LF newline split", r1.length===2 && r1[0].a==="1" && r1[1].b==="4");
-    const csv2 = "a,b\r\n1,2\r\n3,4\r\n";
-    const r2 = parseCSVText(csv2); assert("CRLF newline split", r2.length===2 && r2[1].b==="4");
-    const csv3 = "name,company\nJohn,\"Acme, Inc.\"\n";
-    const r3 = parseCSVText(csv3); assert("Quoted comma", r3[0].company==="Acme, Inc.");
-    const csv4 = "name,note\nJohn,\"Line1\nLine2\"\n";
-    const r4 = parseCSVText(csv4); assert("Multiline field", r4.length===1 && r4[0].note==="Line1\nLine2");
-
-    setResults(res);
-  };
-
-  return (
-    <div className="bg-white rounded-2xl p-4 border shadow-sm">
-      <div className="flex items-center gap-2 mb-2">
-        <button onClick={run} className="btn px-3 py-2 rounded-xl bg-white border">Run tests</button>
-        <span className="text-slate-500 text-sm">(CSV parsing checks)</span>
-      </div>
-      {!!results.length && (
-        <ul className="space-y-1 text-sm">
-          {results.map((r,i)=>(
-            <li key={i} className={r.pass?"text-green-700":"text-red-700"}>{r.pass?"✅":"❌"} {r.name}</li>
-          ))}
-        </ul>
-      )}
-    </div>
-  );
-}
 export default function App() {
   const [drivers, setDrivers] = useLocalState(LS_KEY + ":drivers", []);
   const [tab, setTab] = useState("Dashboard");
@@ -988,7 +592,13 @@ export default function App() {
         />
       )}
       {tab === "Recruitment" && (
-        <Recruitment drivers={filteredDrivers} up={up} addDriver={addDriver} />
+        <DriversTable
+          drivers={filteredDrivers}
+          up={up}
+          addDriver={addDriver}
+          recruiters={RECRUITERS}
+          sources={SOURCES}
+        />
       )}
       {tab === "Termination" && <Termination drivers={filteredDrivers} up={up} can={can} />}
       {tab === "KPI" && <KPI monthly={monthly} />}
@@ -1001,6 +611,9 @@ export default function App() {
           onSyncNow={syncNow}
           autoSyncEnabled={autoSyncEnabled}
           setAutoSyncEnabled={setAutoSyncEnabled}
+          newDriver={newDriver}
+          fromCSVFile={fromCSVFile}
+          toCSV={toCSV}
         />
       )}
     </AppShell>
