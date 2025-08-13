@@ -155,7 +155,7 @@ function AppShell({ children, current, setCurrent }) {
         </header>
         <nav className="flex flex-wrap gap-2">
           {tabs.map((t) => (
-            <button key={t} onClick={() => setCurrent(t)} className={`px-3 py-2 rounded-2xl border ${current === t ? "bg-black text-white" : "bg-white"}`}>{t}</button>
+            <button key={t} onClick={() => setCurrent(t)} className={`btn px-3 py-2 rounded-2xl border ${current === t ? "bg-black text-white" : "bg-white"}`}>{t}</button>
           ))}
         </nav>
         {children}
@@ -194,9 +194,9 @@ function FiltersBar({ filters, setFilters, savedViews, setSavedViews }) {
         <input type="date" value={filters.from || ""} onChange={(e) => update({ from: e.target.value })} className="px-2 py-1 border rounded-lg" />
         <span>→</span>
         <input type="date" value={filters.to || ""} onChange={(e) => update({ to: e.target.value })} className="px-2 py-1 border rounded-lg" />
-        <button onClick={() => quickRange("week")} className="px-2 py-1 rounded-lg border bg-white">This week</button>
-        <button onClick={() => quickRange("month")} className="px-2 py-1 rounded-lg border bg-white">This month</button>
-        <button onClick={() => quickRange("clear")} className="px-2 py-1 rounded-lg border bg-white">Clear</button>
+        <button onClick={() => quickRange("week")} className="btn px-2 py-1 rounded-lg border bg-white">This week</button>
+        <button onClick={() => quickRange("month")} className="btn px-2 py-1 rounded-lg border bg-white">This month</button>
+        <button onClick={() => quickRange("clear")} className="btn px-2 py-1 rounded-lg border bg-white">Clear</button>
       </div>
 
       <div className="flex items-center gap-2 ml-2">
@@ -215,7 +215,7 @@ function FiltersBar({ filters, setFilters, savedViews, setSavedViews }) {
           <option value="">Load view…</option>
           {Object.keys(savedViews||{}).map(n => <option key={n} value={n}>{n}</option>)}
         </select>
-        <button onClick={saveView} className="px-3 py-2 rounded-xl border bg-white">Save view</button>
+        <button onClick={saveView} className="btn px-3 py-2 rounded-xl border bg-white">Save view</button>
       </div>
     </div>
   );
@@ -286,7 +286,7 @@ function Dashboard({ drivers, monthly, range, setRange }) {
         <button
           key={k}
           onClick={() => setRange(k)}
-          className={`px-2 py-1 rounded-lg border ${range === k ? "bg-black text-white" : "bg-white"}`}
+          className={`btn px-2 py-1 rounded-lg border ${range === k ? "bg-black text-white" : "bg-white"}`}
         >
           {k === "all" ? "All" : k}
         </button>
@@ -404,7 +404,7 @@ function FollowUps({ drivers, can, up, addDriver, archive, unarchive, completion
       <FiltersBar filters={filters} setFilters={setFilters} savedViews={savedViews} setSavedViews={setSavedViews} />
 
       <div className="bg-white rounded-2xl p-3 border shadow-sm flex flex-wrap items-center gap-2">
-        <button onClick={addDriver} className="ml-auto px-3 py-2 rounded-xl bg-black text-white">+ Driver</button>
+        <button onClick={addDriver} className="btn ml-auto px-3 py-2 rounded-xl bg-black text-white">+ Driver</button>
       </div>
 
       <div className="bg-white rounded-2xl p-0 border shadow-sm overflow-x-auto">
@@ -454,7 +454,7 @@ function FollowUps({ drivers, can, up, addDriver, archive, unarchive, completion
                   <td className="py-2 px-2">
                     <div className="flex items-center gap-2">
                       <textarea value={d.week1Note} onChange={(e) => up(d.id, { week1Note: e.target.value })} placeholder="Week 1 note" className="px-2 py-1 border rounded-lg w-48 h-10" />
-                      <button disabled={!can.markWeek() || !markDoneAllowed(due.w1)} onClick={() => up(d.id, { week1Note: d.week1Note || "-" })} className={`px-2 py-1 rounded-lg border ${markDoneAllowed(due.w1) ? "bg-white" : "bg-slate-100 text-slate-400"}`}>Mark</button>
+                      <button disabled={!can.markWeek() || !markDoneAllowed(due.w1)} onClick={() => up(d.id, { week1Note: d.week1Note || "-" })} className={`btn px-2 py-1 rounded-lg border ${markDoneAllowed(due.w1) ? "bg-white" : "bg-slate-100 text-slate-400"}`}>Mark</button>
                     </div>
                   </td>
 
@@ -462,7 +462,7 @@ function FollowUps({ drivers, can, up, addDriver, archive, unarchive, completion
                   <td className="py-2 px-2">
                     <div className="flex items-center gap-2">
                       <textarea value={d.week2Note} onChange={(e) => up(d.id, { week2Note: e.target.value })} placeholder="Week 2 note" className="px-2 py-1 border rounded-lg w-48 h-10" />
-                      <button disabled={!can.markWeek() || !markDoneAllowed(due.w2)} onClick={() => up(d.id, { week2Note: d.week2Note || "-" })} className={`px-2 py-1 rounded-lg border ${markDoneAllowed(due.w2) ? "bg-white" : "bg-slate-100 text-slate-400"}`}>Mark</button>
+                      <button disabled={!can.markWeek() || !markDoneAllowed(due.w2)} onClick={() => up(d.id, { week2Note: d.week2Note || "-" })} className={`btn px-2 py-1 rounded-lg border ${markDoneAllowed(due.w2) ? "bg-white" : "bg-slate-100 text-slate-400"}`}>Mark</button>
                     </div>
                   </td>
 
@@ -470,7 +470,7 @@ function FollowUps({ drivers, can, up, addDriver, archive, unarchive, completion
                   <td className="py-2 px-2">
                     <div className="flex items-center gap-2">
                       <textarea value={d.week3Note} onChange={(e) => up(d.id, { week3Note: e.target.value })} placeholder="Week 3 note" className="px-2 py-1 border rounded-lg w-48 h-10" />
-                      <button disabled={!can.markWeek() || !markDoneAllowed(due.w3)} onClick={() => up(d.id, { week3Note: d.week3Note || "-" })} className={`px-2 py-1 rounded-lg border ${markDoneAllowed(due.w3) ? "bg-white" : "bg-slate-100 text-slate-400"}`}>Mark</button>
+                      <button disabled={!can.markWeek() || !markDoneAllowed(due.w3)} onClick={() => up(d.id, { week3Note: d.week3Note || "-" })} className={`btn px-2 py-1 rounded-lg border ${markDoneAllowed(due.w3) ? "bg-white" : "bg-slate-100 text-slate-400"}`}>Mark</button>
                     </div>
                   </td>
 
@@ -478,7 +478,7 @@ function FollowUps({ drivers, can, up, addDriver, archive, unarchive, completion
                   <td className="py-2 px-2">
                     <div className="flex items-center gap-2">
                       <textarea value={d.week4Note} onChange={(e) => up(d.id, { week4Note: e.target.value })} placeholder="Week 4 note" className="px-2 py-1 border rounded-lg w-48 h-10" />
-                      <button disabled={!can.markWeek() || !markDoneAllowed(due.w4)} onClick={() => up(d.id, { week4Note: d.week4Note || "-" })} className={`px-2 py-1 rounded-lg border ${markDoneAllowed(due.w4) ? "bg-white" : "bg-slate-100 text-slate-400"}`}>Mark</button>
+                      <button disabled={!can.markWeek() || !markDoneAllowed(due.w4)} onClick={() => up(d.id, { week4Note: d.week4Note || "-" })} className={`btn px-2 py-1 rounded-lg border ${markDoneAllowed(due.w4) ? "bg-white" : "bg-slate-100 text-slate-400"}`}>Mark</button>
                     </div>
                   </td>
 
@@ -486,11 +486,11 @@ function FollowUps({ drivers, can, up, addDriver, archive, unarchive, completion
                   <td className="py-2 px-2"><div className="w-40"><Bar pct={comp} /></div></td>
 
                   <td className="py-2 px-2 relative">
-                    <button onClick={() => setMenuOpenId(menuOpenId === d.id ? null : d.id)} className="px-2 py-1 rounded-lg border bg-white">More ▾</button>
+                    <button onClick={() => setMenuOpenId(menuOpenId === d.id ? null : d.id)} className="btn px-2 py-1 rounded-lg border bg-white">More ▾</button>
                     {menuOpenId === d.id && (
                       <div className="absolute right-2 mt-1 bg-white border rounded-xl shadow-lg z-10 w-44">
-                        {!d.archived && <button disabled={!can.archive} onClick={() => { setMenuOpenId(null); if (confirm(`Archive ${d.name || "this driver"}?`)) archive([d.id]); }} className="w-full text-left px-3 py-2 hover:bg-slate-50 disabled:text-slate-400">Archive…</button>}
-                        {d.archived && <button disabled={!can.unarchive} onClick={() => { setMenuOpenId(null); unarchive([d.id]); }} className="w-full text-left px-3 py-2 hover:bg-slate-50 disabled:text-slate-400">Unarchive</button>}
+                        {!d.archived && <button disabled={!can.archive} onClick={() => { setMenuOpenId(null); if (confirm(`Archive ${d.name || "this driver"}?`)) archive([d.id]); }} className="btn w-full text-left px-3 py-2 hover:bg-slate-50 disabled:text-slate-400">Archive…</button>}
+                        {d.archived && <button disabled={!can.unarchive} onClick={() => { setMenuOpenId(null); unarchive([d.id]); }} className="btn w-full text-left px-3 py-2 hover:bg-slate-50 disabled:text-slate-400">Unarchive</button>}
                       </div>
                     )}
                   </td>
@@ -510,7 +510,7 @@ function Recruitment({ drivers, up, addDriver }) {
     <section className="space-y-3">
       <div className="flex items-center justify-between">
         <h2 className="font-semibold">Recruitment</h2>
-        <button onClick={addDriver} className="px-3 py-2 rounded-xl bg-black text-white">+ Driver</button>
+        <button onClick={addDriver} className="btn px-3 py-2 rounded-xl bg-black text-white">+ Driver</button>
       </div>
 
       <div className="bg-white rounded-2xl p-0 border shadow-sm overflow-x-auto">
@@ -673,7 +673,7 @@ function Termination({ drivers, up, can }) {
                         if (!can.setTermination) return;
                         up(d.id, { status: "Active", termDate: "", termReason: "" });
                       }}
-                      className="px-2 py-1 border rounded-lg bg-white"
+                      className="btn px-2 py-1 border rounded-lg bg-white"
                       disabled={!can.setTermination}
                     >
                       Reactivate
@@ -770,7 +770,7 @@ function Settings({ drivers, setDrivers, sheetUrl, setSheetUrl, onSyncNow, autoS
         <h2 className="font-semibold">Google Sheet Sync</h2>
         <div className="flex flex-wrap items-end gap-2">
           <input value={sheetUrl} onChange={(e) => setSheetUrl(e.target.value)} placeholder="https://docs.google.com/spreadsheets/d/.../export?format=csv&gid=0" className="px-3 py-2 rounded-xl border w-[520px]" />
-          <button onClick={onSyncNow} className="px-3 py-2 rounded-xl border bg-white">Sync now</button>
+          <button onClick={onSyncNow} className="btn px-3 py-2 rounded-xl border bg-white">Sync now</button>
           <label className="text-sm flex items-center gap-2 ml-2">
             <input type="checkbox" checked={autoSyncEnabled} onChange={(e) => setAutoSyncEnabled(e.target.checked)} />
             Auto-sync every 1 hour
@@ -782,11 +782,11 @@ function Settings({ drivers, setDrivers, sheetUrl, setSheetUrl, onSyncNow, autoS
       <div className="bg-white rounded-2xl p-4 border shadow-sm space-y-3">
         <h2 className="font-semibold">Import / Export</h2>
         <div className="flex flex-wrap items-end gap-2">
-          <label className="px-3 py-2 rounded-xl bg-white border cursor-pointer">Import CSV<input type="file" accept=".csv" className="hidden" onChange={onFile} /></label>
-          <button onClick={applyImport} disabled={!preview} className={`px-3 py-2 rounded-xl border ${preview ? "bg-black text-white" : "bg-white text-slate-400"}`}>Apply Mapping</button>
+          <label className="btn px-3 py-2 rounded-xl bg-white border cursor-pointer">Import CSV<input type="file" accept=".csv" className="hidden" onChange={onFile} /></label>
+          <button onClick={applyImport} disabled={!preview} className={`btn px-3 py-2 rounded-xl border ${preview ? "bg-black text-white" : "bg-white text-slate-400"}`}>Apply Mapping</button>
           <div className="ml-auto flex items-center gap-2">
-            <button onClick={exportCSV} className="px-3 py-2 rounded-xl bg-white border">Export CSV</button>
-            <button onClick={wipe} className="px-3 py-2 rounded-xl bg-red-600 text-white">Clear ALL data</button>
+            <button onClick={exportCSV} className="btn px-3 py-2 rounded-xl bg-white border">Export CSV</button>
+            <button onClick={wipe} className="btn px-3 py-2 rounded-xl bg-red-600 text-white">Clear ALL data</button>
           </div>
         </div>
         {preview && (
@@ -834,7 +834,7 @@ function TestsPanel(){
   return (
     <div className="bg-white rounded-2xl p-4 border shadow-sm">
       <div className="flex items-center gap-2 mb-2">
-        <button onClick={run} className="px-3 py-2 rounded-xl bg-white border">Run tests</button>
+        <button onClick={run} className="btn px-3 py-2 rounded-xl bg-white border">Run tests</button>
         <span className="text-slate-500 text-sm">(CSV parsing checks)</span>
       </div>
       {!!results.length && (
