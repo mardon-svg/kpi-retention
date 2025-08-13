@@ -5,7 +5,17 @@ import { Table, Thead, Tbody, Tr, Th, Td } from './ui/Table';
 import Input from './ui/Input';
 import Select from './ui/Select';
 
-function DriversTable({ drivers, up, addDriver, recruiters, sources }) {
+import { useEffect } from 'react';
+
+function DriversTable({ drivers, up, addDriver, recruiters, sources, recentDriverId }) {
+  useEffect(() => {
+    if (!recentDriverId) return;
+    const el = document.getElementById(`driver-row-${recentDriverId}`);
+    if (el && 'scrollIntoView' in el) {
+      el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }
+  }, [recentDriverId, drivers.length]);
+
   return (
     <div className="section space-y-6">
       <Card>
@@ -27,7 +37,7 @@ function DriversTable({ drivers, up, addDriver, recruiters, sources }) {
             </Thead>
             <Tbody>
               {drivers.map((d) => (
-                <Tr key={d.id}>
+                <Tr key={d.id} id={`driver-row-${d.id}`}>
                   <Td><Input value={d.name} onChange={(e) => up(d.id, { name: e.target.value })} placeholder="Driver" className="w-40" /></Td>
                   <Td><Select value={d.recruiter} onChange={(e) => up(d.id, { recruiter: e.target.value })} className="w-36"><option value="">—</option>{recruiters.map(r => <option key={r}>{r}</option>)}</Select></Td>
                   <Td><Select value={d.source} onChange={(e) => up(d.id, { source: e.target.value })} className="w-36"><option value="">—</option>{sources.map(s => <option key={s}>{s}</option>)}</Select></Td>

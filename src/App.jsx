@@ -604,13 +604,14 @@ export default function App() {
             recruiters={RECRUITERS}
             sources={SOURCES}
           />
-          <DriversTable
-            drivers={filteredDrivers}
-            up={up}
-            addDriver={addDriver}
-            recruiters={RECRUITERS}
-            sources={SOURCES}
-          />
+            <DriversTable
+              drivers={filteredDrivers}
+              up={up}
+              addDriver={addDriver}
+              recruiters={RECRUITERS}
+              sources={SOURCES}
+              recentDriverId={recentDriverId}
+            />
         </div>
       )}
       {tab === "Termination" && (
@@ -623,7 +624,7 @@ export default function App() {
             recruiters={RECRUITERS}
             sources={SOURCES}
           />
-          <Termination drivers={filteredDrivers} up={up} can={can} />
+            <Termination drivers={filteredDrivers} up={up} can={can} recentDriverId={recentDriverId} />
         </div>
       )}
       {tab === "KPI" && <KPI monthly={monthly} />}
