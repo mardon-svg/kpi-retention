@@ -1,0 +1,55 @@
+name: AutoCommit Bot
+
+on:
+  workflow_dispatch:
+    inputs:
+      path:
+        description: 'File path to create/update (e.g., src/app/config.json)'
+        required: true
+      message:
+        description: 'Commit message'
+        required: true
+      content:
+        description: 'File content (plain text)'
+        required: true
+      branch:
+        description: 'Feature branch to create/use'
+        required: false
+        default: 'feat/auto-bot'
+      base:
+        description: 'Base branch'
+        required: false
+        default: 'main'
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  commit:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Write content to file
+        shell: bash
+        run: |
+          set -e
+          PATH_INPUT="${{ github.event.inputs.path }}"
+          CONTENT_INPUT="${{ github.event.inputs.content }}"
+          mkdir -p "$(dirname "$PATH_INPUT")"
+          printf "%s" "$CONTENT_INPUT" > "$PATH_INPUT"
+
+      - name: Create pull request
+        uses: peter-evans/create-pull-request@v6
+        with:
+          commit-message: ${{ github.event.inputs.message }}
+          title: ${{ github.event.inputs.message }}
+          body: "Automated by AutoCommit Bot"
+          branch: ${{ github.event.inputs.branch }}
+          base: ${{ github.event.inputs.base }}
+          add-paths: |
+            ${{ github.event.inputs.path }}
