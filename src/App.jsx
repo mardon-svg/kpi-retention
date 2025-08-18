@@ -5,7 +5,8 @@ import DriversTable from "./components/DriversTable";
 import Termination from "./components/Termination";
 import Settings from "./components/Settings";
 import FiltersBar from "./components/FiltersBar";
-import { parseISO, addDaysLocal, todayLocalISO, firstOfMonth, lastOfMonth, ym, fmtPct } from "./lib/date";
+import { parseISO, addDaysLocal, todayLocalISO, ym, fmtPct } from "./lib/date";
+import { calculateMonthlyStats } from "./lib/metrics";
 import { LS_KEY, useLocalState } from "./lib/storage";
 import { uuid } from "./lib/uuid";
 
@@ -127,37 +128,7 @@ function SimpleLineChart({ points, height = 140 }) {
 }
 
 function Dashboard({ drivers, range, setRange }) {
-  const months = useMemo(() => {
-    const s = new Set();
-    drivers.forEach(d => { if (d.startDate) s.add(ym(d.startDate)); if (d.termDate) s.add(ym(d.termDate)); });
-    return Array.from(s).filter(Boolean).sort();
-  }, [drivers]);
-
-  const monthly = useMemo(() => {
-    const headcountOn = (isoDate) =>
-      drivers.filter(d => {
-        if (!d.startDate) return false;
-        const sd = parseISO(d.startDate);
-        const date = parseISO(isoDate);
-        if (sd > date) return false;
-        if (d.status === 'Terminated' && d.termDate) return parseISO(d.termDate) > date;
-        return true;
-      }).length;
-
-    const leaversInMonth = (ymonth) =>
-      drivers.filter(d => d.status === 'Terminated' && d.termDate && ym(d.termDate) === ymonth).length;
-
-    return months.map(m => {
-      const start = firstOfMonth(m);
-      const end = lastOfMonth(m);
-      const hcStart = headcountOn(start);
-      const hcEnd = headcountOn(end);
-      const avgHC = (hcStart + hcEnd) / 2;
-      const leavers = leaversInMonth(m);
-      const retentionPct = avgHC ? 1 - leavers / avgHC : 0;
-      return { month: m, hcStart, hcEnd, avgHC, leavers, retentionPct };
-    });
-  }, [months, drivers]);
+  const { monthly } = useMemo(() => calculateMonthlyStats(drivers), [drivers]);
 
   const rangeWindows = { '1m': 1, '3m': 3, '6m': 6, '12m': 12, 'all': Infinity };
   const windowSize = rangeWindows[range] ?? Infinity;
@@ -464,37 +435,7 @@ export default function App() {
 
   const completion = (d) => (["week1Note","week2Note","week3Note","week4Note"].filter(k => (d[k]||"").trim()!=="").length)/4;
 
-  const months = useMemo(() => {
-    const s = new Set();
-    drivers.forEach(d => { if (d.startDate) s.add(ym(d.startDate)); if (d.termDate) s.add(ym(d.termDate)); });
-    return Array.from(s).filter(Boolean).sort();
-  }, [drivers]);
-
-  const monthly = useMemo(() => {
-    const headcountOn = (isoDate) =>
-      drivers.filter(d => {
-        if (!d.startDate) return false;
-        const sd = parseISO(d.startDate);
-        const date = parseISO(isoDate);
-        if (sd > date) return false;
-        if (d.status === "Terminated" && d.termDate) return parseISO(d.termDate) > date;
-        return true;
-      }).length;
-
-    const leaversInMonth = (ymonth) =>
-      drivers.filter(d => d.status === "Terminated" && d.termDate && ym(d.termDate) === ymonth).length;
-
-    return months.map(m => {
-      const start = firstOfMonth(m);
-      const end = lastOfMonth(m);
-      const hcStart = headcountOn(start);
-      const hcEnd = headcountOn(end);
-      const avgHC = (hcStart + hcEnd) / 2;
-      const leavers = leaversInMonth(m);
-      const retentionPct = avgHC ? 1 - leavers / avgHC : 0;
-      return { month: m, hcStart, hcEnd, avgHC, leavers, retentionPct };
-    });
-  }, [months, drivers]);
+  const { monthly } = useMemo(() => calculateMonthlyStats(drivers), [drivers]);
 
   const applySheetRows = useCallback((rows) => {
     const mapped = rows.map((r) => {
